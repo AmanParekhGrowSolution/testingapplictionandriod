@@ -125,17 +125,24 @@ This workflow uses `pull_request_target` so it **always reads from `main`** — 
 
 ---
 
-### 5. `rollback.yml` — The Safety Net
+### 5. `rollback.yml` — The Safety Net + APK Delivery
 **Trigger:** Every push to `main`
 
-Runs the full CI suite (`assembleDebug` + `test` + `lint`) on `main` after every merge. If any check fails, it automatically reverts the breaking commit:
+Two jobs run sequentially:
+
+**Job 1 — `guard`:** Runs `assembleDebug` + `test` on `main`. If any check fails, it automatically reverts the breaking commit and opens an incident issue:
 
 ```bash
 git revert HEAD --no-edit
 git push origin main
 ```
 
-This means `main` is always in a working state. Even if a bad commit somehow slips through, it is automatically undone within minutes.
+**Job 2 — `deliver`:** Runs only when `guard` passes (never fires on a build that gets auto-reverted). It:
+1. Downloads the APK that `guard` already built (no duplicate compile).
+2. Creates a GitHub Release tagged `build-<sha>` with the APK attached.
+3. POSTs a formatted Slack notification with a one-click **Download APK** button.
+
+This means `main` is always in a working state, and your team gets the fresh APK in Slack within minutes of every successful merge — zero manual steps.
 
 ---
 
@@ -145,6 +152,7 @@ This means `main` is always in a working state. Even if a bad commit somehow sli
 |---|---|---|
 | `CLAUDE_CODE_OAUTH_TOKEN` | Authenticates the Claude Code agent | Run `claude setup-token` in your terminal |
 | `AGENT_PAT` | A GitHub Personal Access Token | GitHub → Settings → Developer settings → Personal access tokens → Fine-grained: `contents`, `pull-requests`, `issues`, `workflows` write |
+| `SLACK_WEBHOOK_URL` | Slack incoming webhook for APK delivery notifications | Slack workspace → Apps → Incoming Webhooks → add to channel → copy URL |
 
 `AGENT_PAT` is needed because PRs and labels created by `GITHUB_TOKEN` (the default) do not trigger downstream workflows — GitHub blocks this to prevent infinite loops. A PAT belonging to a real user bypasses this restriction.
 
