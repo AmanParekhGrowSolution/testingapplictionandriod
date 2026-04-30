@@ -41,6 +41,9 @@
     <string name="event_type_social">Social</string>
     <string name="event_type_other">Other</string>
 
+    <!-- Event time range format -->
+    <string name="event_time_range">%1$s:%2$s — %3$s:%4$s</string>
+
     <!-- Calendar day headers -->
     <string-array name="calendar_day_headers">
         <item>Su</item>

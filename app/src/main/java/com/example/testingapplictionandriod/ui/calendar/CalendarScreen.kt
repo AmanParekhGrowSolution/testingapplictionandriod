@@ -258,7 +258,7 @@ private fun CalendarGrid(
                     text = dayLabel,
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center,
-                    color = Color.White.copy(alpha = 0.5f),
+                    color = Color.White.copy(alpha = 0.87f),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -396,7 +396,7 @@ private fun EventsSection(
             if (selectedDay != null) {
                 Text(
                     text = "${selectedEvents.size} ${stringResource(R.string.events_count_suffix)}",
-                    color = Color.White.copy(alpha = 0.5f),
+                    color = Color.White.copy(alpha = 0.87f),
                     fontSize = 13.sp
                 )
             }
@@ -421,7 +421,7 @@ private fun EventsSection(
             ) {
                 Text(
                     text = stringResource(R.string.events_tap_to_select),
-                    color = Color.White.copy(alpha = 0.5f),
+                    color = Color.White.copy(alpha = 0.87f),
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center
                 )
@@ -445,7 +445,7 @@ private fun EventsSection(
             ) {
                 Text(
                     text = stringResource(R.string.events_no_events),
-                    color = Color.White.copy(alpha = 0.5f),
+                    color = Color.White.copy(alpha = 0.87f),
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center
                 )
@@ -506,16 +506,21 @@ private fun EventCard(
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = "${event.startHour.padded()}:${event.startMinute.padded()} — " +
-                        "${event.endHour.padded()}:${event.endMinute.padded()}",
-                color = Color.White.copy(alpha = 0.6f),
+                text = stringResource(
+                    R.string.event_time_range,
+                    event.startHour.padded(),
+                    event.startMinute.padded(),
+                    event.endHour.padded(),
+                    event.endMinute.padded()
+                ),
+                color = Color.White.copy(alpha = 0.87f),
                 fontSize = 12.sp
             )
             if (event.description.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = event.description,
-                    color = Color.White.copy(alpha = 0.45f),
+                    color = Color.White.copy(alpha = 0.87f),
                     fontSize = 12.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -550,7 +555,7 @@ private fun EventCard(
             Icon(
                 imageVector = Icons.Filled.Delete,
                 contentDescription = stringResource(R.string.cd_delete_event),
-                tint = Color.White.copy(alpha = 0.5f),
+                tint = Color.White.copy(alpha = 0.87f),
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -602,7 +607,7 @@ private fun AddEventDialog(
                     label = {
                         Text(
                             stringResource(R.string.dialog_event_title_hint),
-                            color = Color.White.copy(alpha = 0.6f)
+                            color = Color.White.copy(alpha = 0.87f)
                         )
                     },
                     colors = OutlinedTextFieldDefaults.colors(
@@ -612,7 +617,7 @@ private fun AddEventDialog(
                         unfocusedBorderColor = Color.White.copy(alpha = 0.25f),
                         cursorColor = Color(0xFF6366F1),
                         focusedLabelColor = Color(0xFF6366F1),
-                        unfocusedLabelColor = Color.White.copy(alpha = 0.5f)
+                        unfocusedLabelColor = Color.White.copy(alpha = 0.87f)
                     ),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
@@ -626,7 +631,7 @@ private fun AddEventDialog(
                     label = {
                         Text(
                             stringResource(R.string.dialog_event_desc_hint),
-                            color = Color.White.copy(alpha = 0.6f)
+                            color = Color.White.copy(alpha = 0.87f)
                         )
                     },
                     colors = OutlinedTextFieldDefaults.colors(
@@ -636,7 +641,7 @@ private fun AddEventDialog(
                         unfocusedBorderColor = Color.White.copy(alpha = 0.25f),
                         cursorColor = Color(0xFF6366F1),
                         focusedLabelColor = Color(0xFF6366F1),
-                        unfocusedLabelColor = Color.White.copy(alpha = 0.5f)
+                        unfocusedLabelColor = Color.White.copy(alpha = 0.87f)
                     ),
                     modifier = Modifier.fillMaxWidth(),
                     maxLines = 2
@@ -646,7 +651,7 @@ private fun AddEventDialog(
 
                 Text(
                     text = stringResource(R.string.dialog_event_type_label),
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = Color.White.copy(alpha = 0.87f),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -698,7 +703,7 @@ private fun AddEventDialog(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = stringResource(R.string.dialog_start_time),
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = Color.White.copy(alpha = 0.87f),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -715,7 +720,7 @@ private fun AddEventDialog(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = stringResource(R.string.dialog_end_time),
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = Color.White.copy(alpha = 0.87f),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -756,7 +761,7 @@ private fun AddEventDialog(
                     ) {
                         Text(
                             text = stringResource(R.string.btn_cancel),
-                            color = Color.White.copy(alpha = 0.8f),
+                            color = Color.White.copy(alpha = 0.87f),
                             fontWeight = FontWeight.SemiBold
                         )
                     }
@@ -860,7 +865,7 @@ private fun TimeSpinner(
             Icon(
                 imageVector = Icons.Filled.KeyboardArrowUp,
                 contentDescription = stringResource(R.string.cd_increase_value, contentDescription),
-                tint = Color.White.copy(alpha = 0.7f),
+                tint = Color.White.copy(alpha = 0.87f),
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -878,7 +883,7 @@ private fun TimeSpinner(
             Icon(
                 imageVector = Icons.Filled.KeyboardArrowDown,
                 contentDescription = stringResource(R.string.cd_decrease_value, contentDescription),
-                tint = Color.White.copy(alpha = 0.7f),
+                tint = Color.White.copy(alpha = 0.87f),
                 modifier = Modifier.size(18.dp)
             )
         }

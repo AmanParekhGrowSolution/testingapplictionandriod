@@ -144,61 +144,10 @@ class CalendarViewModel : ViewModel() {
             val year = today.get(java.util.Calendar.YEAR)
             val month = today.get(java.util.Calendar.MONTH) + 1
 
-            val sampleEvents = listOf(
-                CalendarEvent(
-                    id = "sample_1",
-                    title = "Team Standup",
-                    description = "Daily sync with the team",
-                    type = EventType.WORK,
-                    year = year, month = month, day = 3,
-                    startHour = 9, startMinute = 0, endHour = 9, endMinute = 30
-                ),
-                CalendarEvent(
-                    id = "sample_2",
-                    title = "Lunch with Sarah",
-                    description = "Café on Main Street",
-                    type = EventType.SOCIAL,
-                    year = year, month = month, day = 7,
-                    startHour = 12, startMinute = 0, endHour = 13, endMinute = 0
-                ),
-                CalendarEvent(
-                    id = "sample_3",
-                    title = "Gym Session",
-                    description = "Upper body workout",
-                    type = EventType.HEALTH,
-                    year = year, month = month, day = 12,
-                    startHour = 7, startMinute = 0, endHour = 8, endMinute = 30
-                ),
-                CalendarEvent(
-                    id = "sample_4",
-                    title = "Project Review",
-                    description = "Q2 milestone review with stakeholders",
-                    type = EventType.WORK,
-                    year = year, month = month, day = 18,
-                    startHour = 14, startMinute = 0, endHour = 15, endMinute = 0
-                ),
-                CalendarEvent(
-                    id = "sample_5",
-                    title = "Birthday Party",
-                    description = "Alex's birthday celebration",
-                    type = EventType.PERSONAL,
-                    year = year, month = month, day = 24,
-                    startHour = 19, startMinute = 0, endHour = 22, endMinute = 0
-                ),
-                CalendarEvent(
-                    id = "sample_6",
-                    title = "Doctor Appointment",
-                    description = "Annual check-up",
-                    type = EventType.HEALTH,
-                    year = year, month = month, day = 28,
-                    startHour = 10, startMinute = 30, endHour = 11, endMinute = 30
-                )
-            )
-
             return CalendarUiState(
                 displayedYear = year,
                 displayedMonth = month,
-                events = sampleEvents
+                events = emptyList()
             )
         }
     }
