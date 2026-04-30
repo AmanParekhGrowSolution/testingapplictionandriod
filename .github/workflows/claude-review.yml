@@ -1,0 +1,81 @@
+name: 🔍 Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  review:
+    name: Claude Code Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Claude Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.AGENT_PAT }}
+          claude_args: >-
+            --model claude-sonnet-4-6
+            --max-turns 25
+            --permission-mode bypassPermissions
+
+          prompt: |
+            You are reviewing PR #${{ github.event.pull_request.number }} in this Android repo.
+
+            ## Steps
+
+            1. Read `CLAUDE.md` at the repo root — it is the source of truth for project rules.
+            2. Run `gh pr diff ${{ github.event.pull_request.number }}` to see all changes.
+            3. Check the diff against CLAUDE.md mandatory rules:
+               - **Gradient design system**: every Composable background and button uses `Brush.linearGradient` / `verticalGradient`. Flat solid `containerColor` or `Color(...)` backgrounds are FORBIDDEN.
+               - **Text on gradients**: must be `Color.White` or `Color.White.copy(alpha = 0.87f)`.
+               - **MVVM**: ViewModels do not import `android.view.*` or hold `Context`. Use `collectAsStateWithLifecycle()`. No `!!` operators.
+               - **Tests**: any new ViewModel or Repository has unit tests covering happy path, error, and loading states.
+               - **Accessibility**: every new `Image` and `Icon` has a non-empty `contentDescription`.
+               - **No hardcoded strings**: user-facing text lives in `strings.xml`.
+            4. Post inline comments for line-specific issues using the `mcp__github_inline_comment__create_inline_comment` tool.
+            5. Post one structured top-level summary comment via:
+               `gh pr comment ${{ github.event.pull_request.number }} --body "..."`
+               Include: ✅ what passed, ❌ what was blocked, and 📁 files reviewed.
+            6. **Apply a verdict label — this gates the merge:**
+               First remove any prior verdict:
+               `gh pr edit ${{ github.event.pull_request.number }} --remove-label "review: passed" --remove-label "review: blocked" 2>/dev/null || true`
+               Then apply the outcome:
+               - PASS (no blocking violations): `gh pr edit ${{ github.event.pull_request.number }} --add-label "review: passed"`
+               - FAIL (any mandatory rule violated): `gh pr edit ${{ github.event.pull_request.number }} --add-label "review: blocked"`
+
+            Be strict. CLAUDE.md uses words like "MANDATORY" and "no exceptions" — treat violations as blocking, not advisory.
+
+      - name: Enforce review verdict
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.AGENT_PAT }}
+        run: |
+          LABELS=$(gh pr view ${{ github.event.pull_request.number }} \
+            --repo ${{ github.repository }} \
+            --json labels --jq '.labels[].name')
+          echo "PR labels: $LABELS"
+
+          if echo "$LABELS" | grep -q "review: blocked"; then
+            echo "❌ Claude review found blocking violations — merge is blocked"
+            exit 1
+          fi
+
+          if echo "$LABELS" | grep -q "review: passed"; then
+            echo "✅ Claude review passed — merge gate cleared"
+            exit 0
+          fi
+
+          echo "⚠️ No verdict label found — failing safe (Claude may have crashed)"
+          exit 1
