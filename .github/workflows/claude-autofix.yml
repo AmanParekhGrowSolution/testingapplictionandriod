@@ -1,0 +1,173 @@
+name: 🔧 Claude Auto-Fix Review Violations
+
+on:
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  autofix:
+    name: Auto-fix Review Violations
+    if: github.event.label.name == 'review: blocked'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    concurrency:
+      group: claude-autofix-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+
+    steps:
+      # ── 1. Check attempt count (max 3) ────────────────────────────────────
+      - name: Check attempt count
+        id: attempt_check
+        env:
+          GH_TOKEN: ${{ secrets.AGENT_PAT }}
+        run: |
+          PRIOR=$(gh pr view ${{ github.event.pull_request.number }} \
+            --repo ${{ github.repository }} \
+            --json labels \
+            --jq '[.labels[] | select(.name | startswith("autofix: attempt-"))] | length')
+          NEXT=$((PRIOR + 1))
+          echo "attempt=$NEXT" >> "$GITHUB_OUTPUT"
+
+          if [ "$NEXT" -gt 3 ]; then
+            echo "max_reached=true" >> "$GITHUB_OUTPUT"
+            gh pr comment ${{ github.event.pull_request.number }} \
+              --body "## 🛑 Auto-fix gave up after 3 attempts
+
+          Claude tried to resolve the review violations 3 times without success. **Manual intervention required.**
+
+          Read the latest \`Claude Code Review\` comment + inline comments and fix manually."
+          else
+            echo "max_reached=false" >> "$GITHUB_OUTPUT"
+            gh pr edit ${{ github.event.pull_request.number }} \
+              --add-label "autofix: attempt-$NEXT"
+          fi
+
+      # ── 2. Checkout the PR branch (write-capable) ─────────────────────────
+      - name: Checkout PR branch
+        if: steps.attempt_check.outputs.max_reached == 'false'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          token: ${{ secrets.AGENT_PAT }}
+
+      # ── 3. JDK so Claude can verify with ./gradlew ────────────────────────
+      - name: Set up JDK 17
+        if: steps.attempt_check.outputs.max_reached == 'false'
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      - name: Cache Gradle
+        if: steps.attempt_check.outputs.max_reached == 'false'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('**/*.gradle*', '**/libs.versions.toml') }}
+          restore-keys: gradle-
+
+      - name: Grant Gradle permission
+        if: steps.attempt_check.outputs.max_reached == 'false'
+        run: chmod +x gradlew
+
+      # ── 4. Configure git identity for the agent's commit ──────────────────
+      - name: Configure git
+        if: steps.attempt_check.outputs.max_reached == 'false'
+        run: |
+          git config user.name  "claude-autofix[bot]"
+          git config user.email "claude-autofix@users.noreply.github.com"
+
+      # ── 5. Run Claude to fix the violations ───────────────────────────────
+      - name: Run Claude Auto-Fix
+        if: steps.attempt_check.outputs.max_reached == 'false'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.AGENT_PAT }}
+          claude_args: >-
+            --model claude-sonnet-4-6
+            --max-turns 30
+            --permission-mode bypassPermissions
+
+          prompt: |
+            You are auto-fixing CLAUDE.md violations on PR #${{ github.event.pull_request.number }}.
+            This is **attempt ${{ steps.attempt_check.outputs.attempt }} of 3**.
+
+            ## Context
+
+            The Claude Code Review workflow flagged blocking violations on this PR.
+            Your job is to fix them in the same branch and push.
+
+            ## Steps
+
+            1. Read `CLAUDE.md` at the repo root — it is the source of truth for project rules.
+
+            2. Read the **most recent** review summary comment:
+               ```
+               gh pr view ${{ github.event.pull_request.number }} --json comments \
+                 --jq '[.comments[] | select(.body | contains("Claude Code Review"))] | last | .body'
+               ```
+
+            3. Read all **inline** review comments (file + line + body):
+               ```
+               gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments \
+                 --jq '[.[] | {path: .path, line: .line, body: .body}]'
+               ```
+
+            4. **Fix every blocking violation** described in those comments. Apply the
+               reviewer's suggested fix. Stay within scope — do NOT touch files that
+               were not flagged. Do NOT edit `.github/`, `gradle/`, `gradle.properties`,
+               `settings.gradle*`, or top-level `build.gradle*`.
+
+            5. Re-read CLAUDE.md rules and self-check your fix against them before committing.
+
+            6. Verify locally:
+               - `./gradlew assembleDebug` — must compile
+               - `./gradlew test` — must pass
+
+            7. Commit + push to the PR branch:
+               ```
+               git add -A
+               git commit -m "fix: address Claude review violations (autofix attempt ${{ steps.attempt_check.outputs.attempt }})"
+               git push
+               ```
+
+            8. Remove the blocking label so the next review run starts clean:
+               ```
+               gh pr edit ${{ github.event.pull_request.number }} --remove-label "review: blocked"
+               ```
+
+            9. Post a brief status comment:
+               ```
+               gh pr comment ${{ github.event.pull_request.number }} --body "🔧 Autofix attempt ${{ steps.attempt_check.outputs.attempt }} pushed. Re-running Claude review..."
+               ```
+
+            Pushing will automatically retrigger `claude-review.yml`. If your fix is
+            correct, the next review will apply `review: passed` and auto-merge proceeds.
+
+            If you genuinely cannot fix a violation (e.g. the rule conflicts with
+            another rule), do NOT push a no-op commit — instead post a comment
+            explaining why and exit. The 3-attempt cap will then guard against loops.
+
+      # ── 6. Failure comment ────────────────────────────────────────────────
+      - name: Post failure comment
+        if: failure() && steps.attempt_check.outputs.max_reached == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.AGENT_PAT }}
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          gh pr comment ${{ github.event.pull_request.number }} --body "## ⚠️ Autofix attempt ${{ steps.attempt_check.outputs.attempt }} crashed
+
+          The autofix workflow itself errored. [View logs]($RUN_URL).
+
+          Re-add the \`review: blocked\` label to retry, or fix manually."
