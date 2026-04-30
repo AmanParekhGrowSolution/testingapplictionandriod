@@ -79,7 +79,6 @@ jobs:
           claude_args: >-
             --model claude-sonnet-4-6
             --max-turns 40
-            --allowed-tools "Bash(git:*),Bash(./gradlew:*),Bash(find:*),Bash(cat:*),Bash(ls:*),Bash(grep:*),Read,Edit,Glob,Grep"
 
           prompt: |
             You are an autonomous Android coding agent triggered by GitHub Issue #${{ github.event.issue.number }}.
