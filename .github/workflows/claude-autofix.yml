@@ -13,7 +13,7 @@ permissions:
 jobs:
   autofix:
     name: Auto-fix Review Violations
-    if: github.event.label.name == 'review: blocked'
+    if: "${{ github.event.label.name == 'review: blocked' }}"
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
