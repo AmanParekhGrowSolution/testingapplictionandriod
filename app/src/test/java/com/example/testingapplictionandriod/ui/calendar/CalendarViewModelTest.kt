@@ -11,6 +11,16 @@ import org.junit.Test
 class CalendarViewModelTest {
 
     @Test
+    fun initialState_isNotLoading() = runTest {
+        val viewModel = CalendarViewModel()
+        viewModel.uiState.test {
+            val state = awaitItem()
+            assertFalse(state.isLoading)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun initialState_hasCurrentYearAndMonth() = runTest {
         val viewModel = CalendarViewModel()
         val today = java.util.Calendar.getInstance()

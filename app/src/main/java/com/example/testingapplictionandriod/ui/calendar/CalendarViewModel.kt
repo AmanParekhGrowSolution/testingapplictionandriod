@@ -3,13 +3,16 @@ package com.example.testingapplictionandriod.ui.calendar
 import androidx.lifecycle.ViewModel
 import com.example.testingapplictionandriod.domain.model.CalendarEvent
 import com.example.testingapplictionandriod.domain.model.EventType
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import java.util.UUID
+import javax.inject.Inject
 
-class CalendarViewModel : ViewModel() {
+@HiltViewModel
+class CalendarViewModel @Inject constructor() : ViewModel() {
 
     private val _uiState = MutableStateFlow(buildInitialState())
     val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()

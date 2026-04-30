@@ -347,7 +347,7 @@ private fun CalendarDayCell(
                                 .size(4.dp)
                                 .background(
                                     brush = if (isSelected || isToday)
-                                        Brush.linearGradient(listOf(Color.White, Color.White))
+                                        Brush.linearGradient(listOf(Color.White.copy(alpha = 0.6f), Color.White))
                                     else
                                         Brush.linearGradient(listOf(Color(0xFF6366F1), Color(0xFF8B5CF6))),
                                     shape = CircleShape
@@ -748,8 +748,8 @@ private fun AddEventDialog(
                             .background(
                                 Brush.linearGradient(
                                     listOf(
-                                        Color.White.copy(alpha = 0.08f),
-                                        Color.White.copy(alpha = 0.08f)
+                                        Color.White.copy(alpha = 0.05f),
+                                        Color.White.copy(alpha = 0.12f)
                                     )
                                 ),
                                 RoundedCornerShape(12.dp)
@@ -818,7 +818,7 @@ private fun TimeSelector(
             .fillMaxWidth()
             .background(
                 Brush.linearGradient(
-                    listOf(Color.White.copy(alpha = 0.07f), Color.White.copy(alpha = 0.07f))
+                    listOf(Color.White.copy(alpha = 0.05f), Color.White.copy(alpha = 0.10f))
                 ),
                 RoundedCornerShape(10.dp)
             )
@@ -834,7 +834,7 @@ private fun TimeSelector(
         )
 
         Text(
-            text = ":",
+            text = stringResource(R.string.time_separator),
             color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,

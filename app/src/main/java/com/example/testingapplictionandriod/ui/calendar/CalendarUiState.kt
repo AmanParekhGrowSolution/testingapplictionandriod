@@ -8,6 +8,7 @@ data class CalendarUiState(
     val displayedMonth: Int = java.util.Calendar.getInstance().get(java.util.Calendar.MONTH) + 1,
     val selectedDay: Int? = null,
     val events: List<CalendarEvent> = emptyList(),
+    val isLoading: Boolean = false,
     val showAddEventDialog: Boolean = false,
     val newEventTitle: String = "",
     val newEventDescription: String = "",
