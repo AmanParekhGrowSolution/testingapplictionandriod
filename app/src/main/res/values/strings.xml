@@ -57,4 +57,13 @@
         <item>Fr</item>
         <item>Sa</item>
     </string-array>
+
+    <!-- Month/year header format -->
+    <string name="format_month_year">%1$s %2$d</string>
+
+    <!-- Events count plural -->
+    <plurals name="events_count">
+        <item quantity="one">%d event</item>
+        <item quantity="other">%d events</item>
+    </plurals>
 </resources>

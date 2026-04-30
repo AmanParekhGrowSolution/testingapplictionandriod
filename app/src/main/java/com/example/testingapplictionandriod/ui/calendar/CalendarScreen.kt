@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -102,7 +103,11 @@ fun CalendarScreen(
                     .fillMaxWidth()
                     .height(1.dp)
                     .padding(horizontal = 16.dp)
-                    .background(Color.White.copy(alpha = 0.1f))
+                    .background(
+                        Brush.linearGradient(
+                            listOf(Color.White.copy(alpha = 0.05f), Color.White.copy(alpha = 0.15f))
+                        )
+                    )
             )
 
             EventsSection(
@@ -212,7 +217,7 @@ private fun CalendarTopBar(
         }
 
         Text(
-            text = "$monthName $year",
+            text = stringResource(R.string.format_month_year, monthName, year),
             color = Color.White,
             fontWeight = FontWeight.SemiBold,
             fontSize = 16.sp,
@@ -347,7 +352,7 @@ private fun CalendarDayCell(
                                 .size(4.dp)
                                 .background(
                                     brush = if (isSelected || isToday)
-                                        Brush.linearGradient(listOf(Color.White.copy(alpha = 0.6f), Color.White))
+                                        Brush.linearGradient(listOf(Color.White.copy(alpha = 0.87f), Color.White))
                                     else
                                         Brush.linearGradient(listOf(Color(0xFF6366F1), Color(0xFF8B5CF6))),
                                     shape = CircleShape
@@ -395,7 +400,7 @@ private fun EventsSection(
 
             if (selectedDay != null) {
                 Text(
-                    text = "${selectedEvents.size} ${stringResource(R.string.events_count_suffix)}",
+                    text = pluralStringResource(R.plurals.events_count, selectedEvents.size, selectedEvents.size),
                     color = Color.White.copy(alpha = 0.87f),
                     fontSize = 13.sp
                 )
