@@ -1,9 +1,12 @@
 package com.example.testingapplictionandriod.domain.model
 
-enum class EventType(val label: String) {
-    WORK("Work"),
-    PERSONAL("Personal"),
-    HEALTH("Health"),
-    SOCIAL("Social"),
-    OTHER("Other")
+import androidx.annotation.StringRes
+import com.example.testingapplictionandriod.R
+
+enum class EventType(@StringRes val labelRes: Int) {
+    WORK(R.string.event_type_work),
+    PERSONAL(R.string.event_type_personal),
+    HEALTH(R.string.event_type_health),
+    SOCIAL(R.string.event_type_social),
+    OTHER(R.string.event_type_other)
 }

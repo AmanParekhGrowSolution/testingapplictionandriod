@@ -31,4 +31,24 @@
     <string name="cd_start_minute">Start minute</string>
     <string name="cd_end_hour">End hour</string>
     <string name="cd_end_minute">End minute</string>
+    <string name="cd_increase_value">Increase %1$s</string>
+    <string name="cd_decrease_value">Decrease %1$s</string>
+
+    <!-- Event types -->
+    <string name="event_type_work">Work</string>
+    <string name="event_type_personal">Personal</string>
+    <string name="event_type_health">Health</string>
+    <string name="event_type_social">Social</string>
+    <string name="event_type_other">Other</string>
+
+    <!-- Calendar day headers -->
+    <string-array name="calendar_day_headers">
+        <item>Su</item>
+        <item>Mo</item>
+        <item>Tu</item>
+        <item>We</item>
+        <item>Th</item>
+        <item>Fr</item>
+        <item>Sa</item>
+    </string-array>
 </resources>
