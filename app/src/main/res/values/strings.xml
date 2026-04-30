@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">testingapplictionandriod</string>
+    <string name="home_greeting">Hello, Android!</string>
+    <string name="tap_me">Tap me</string>
+    <string name="count_label">Count: %d</string>
 </resources>
