@@ -11,6 +11,10 @@ jobs:
       github.event.label.name == 'claude: fix' ||
       github.event.label.name == 'claude: implement'
 
+    concurrency:
+      group: claude-agent-issue-${{ github.event.issue.number }}
+      cancel-in-progress: true
+
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
