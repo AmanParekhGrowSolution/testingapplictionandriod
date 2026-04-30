@@ -75,21 +75,11 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: "--model claude-sonnet-4-6 --max-turns 40"
-
-          allowed_tools: >-
-            Bash(git:*),
-            Bash(./gradlew:*),
-            Bash(find:*),
-            Bash(cat:*),
-            Bash(ls:*),
-            Bash(grep:*),
-            View,
-            Edit,
-            Replace,
-            GlobTool,
-            GrepTool,
-            BatchTool
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          claude_args: >-
+            --model claude-sonnet-4-6
+            --max-turns 40
+            --allowed-tools "Bash(git:*),Bash(./gradlew:*),Bash(find:*),Bash(cat:*),Bash(ls:*),Bash(grep:*),Read,Edit,Glob,Grep"
 
           prompt: |
             You are an autonomous Android coding agent triggered by GitHub Issue #${{ github.event.issue.number }}.
@@ -104,7 +94,7 @@ jobs:
 
             ## Instructions
 
-            1. **Explore** the codebase — use `find`, `cat`, `View`, `GrepTool` to understand the structure and patterns.
+            1. **Explore** the codebase — use `find`, `cat`, `Read`, `Grep` to understand the structure and patterns.
 
             2. **Read `CLAUDE.md`** at the repo root — it contains mandatory gradient design rules and architecture you MUST follow.
 
@@ -131,9 +121,6 @@ jobs:
             8. **Comment on the issue** with the PR link.
 
             If the scope is unclear, comment on the issue asking for clarification — do NOT create a PR with guesswork.
-
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # ── 5. Add "implemented" label (fallback) ─────────────────────────────
       - name: Add implemented label
