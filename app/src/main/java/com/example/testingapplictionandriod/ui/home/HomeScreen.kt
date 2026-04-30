@@ -9,8 +9,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.example.testingapplictionandriod.R
 
 @Composable
 fun HomeScreen(uiState: HomeUiState) {
@@ -25,7 +27,7 @@ fun HomeScreen(uiState: HomeUiState) {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = uiState.greeting,
+            text = stringResource(R.string.home_greeting),
             color = Color.White,
             fontWeight = FontWeight.SemiBold,
             fontSize = 24.sp
