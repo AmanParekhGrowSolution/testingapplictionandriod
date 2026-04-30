@@ -28,25 +28,26 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.AGENT_PAT }}
         run: |
-          PRIOR=$(gh pr view ${{ github.event.pull_request.number }} \
-            --repo ${{ github.repository }} \
-            --json labels \
-            --jq '[.labels[] | select(.name | startswith("autofix: attempt-"))] | length')
+          PR=${{ github.event.pull_request.number }}
+          REPO=${{ github.repository }}
+
+          PRIOR=$(gh api "repos/$REPO/issues/$PR/labels" \
+            --jq '[.[] | select(.name | startswith("autofix: attempt-"))] | length')
           NEXT=$((PRIOR + 1))
           echo "attempt=$NEXT" >> "$GITHUB_OUTPUT"
 
           if [ "$NEXT" -gt 3 ]; then
             echo "max_reached=true" >> "$GITHUB_OUTPUT"
-            gh pr comment ${{ github.event.pull_request.number }} \
-              --body "## 🛑 Auto-fix gave up after 3 attempts
+            gh api -X POST "repos/$REPO/issues/$PR/comments" \
+              -f body="## 🛑 Auto-fix gave up after 3 attempts
 
           Claude tried to resolve the review violations 3 times without success. **Manual intervention required.**
 
           Read the latest \`Claude Code Review\` comment + inline comments and fix manually."
           else
             echo "max_reached=false" >> "$GITHUB_OUTPUT"
-            gh pr edit ${{ github.event.pull_request.number }} \
-              --add-label "autofix: attempt-$NEXT"
+            gh api -X POST "repos/$REPO/issues/$PR/labels" \
+              -f "labels[]=autofix: attempt-$NEXT"
           fi
 
       # ── 2. Checkout the PR branch (write-capable) ─────────────────────────
@@ -166,7 +167,8 @@ jobs:
           GH_TOKEN: ${{ secrets.AGENT_PAT }}
         run: |
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          gh pr comment ${{ github.event.pull_request.number }} --body "## ⚠️ Autofix attempt ${{ steps.attempt_check.outputs.attempt }} crashed
+          gh api -X POST "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            -f body="## ⚠️ Autofix attempt ${{ steps.attempt_check.outputs.attempt }} crashed
 
           The autofix workflow itself errored. [View logs]($RUN_URL).
 
