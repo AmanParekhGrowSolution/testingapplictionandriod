@@ -126,7 +126,7 @@ jobs:
             --title "Build ${{ steps.meta.outputs.short_sha }}" \
             --notes "Auto-built debug APK — ${{ steps.meta.outputs.subject }}" \
             "${{ steps.meta.outputs.apk_path }}"
-          URL=$(gh release view "$TAG" --json assets --jq '.assets[0].browser_download_url')
+          URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/${{ steps.meta.outputs.apk_name }}"
           echo "download_url=$URL" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG"          >> "$GITHUB_OUTPUT"
 
