@@ -16,7 +16,7 @@ jobs:
       cancel-in-progress: true
 
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     permissions:
       contents: write
@@ -82,7 +82,7 @@ jobs:
           github_token: ${{ secrets.AGENT_PAT }}
           claude_args: >-
             --model claude-sonnet-4-6
-            --max-turns 40
+            --max-turns 100
             --permission-mode bypassPermissions
 
           prompt: |
