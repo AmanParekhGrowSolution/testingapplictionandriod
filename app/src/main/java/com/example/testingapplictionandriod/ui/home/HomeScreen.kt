@@ -21,7 +21,7 @@ fun HomeScreen(uiState: HomeUiState) {
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    listOf(Color(0xFFEF4444), Color(0xFFDC2626))
+                    listOf(Color(0xFF06B6D4), Color(0xFF3B82F6))
                 )
             ),
         contentAlignment = Alignment.Center
