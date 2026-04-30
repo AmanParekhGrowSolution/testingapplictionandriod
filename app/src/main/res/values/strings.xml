@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">testingapplictionandriod</string>
+    <string name="home_greeting">Hello Android!</string>
 </resources>
