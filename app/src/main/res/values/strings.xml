@@ -1,4 +1,34 @@
 <resources>
     <string name="app_name">testingapplictionandriod</string>
     <string name="home_greeting">Hello aman</string>
+
+    <!-- Calendar -->
+    <string name="app_calendar_title">Calendar</string>
+    <string name="btn_today">Today</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_add_event">Add Event</string>
+
+    <!-- Events section -->
+    <string name="events_title_no_selection">My Events</string>
+    <string name="events_count_suffix">events</string>
+    <string name="events_tap_to_select">Tap a date to see events</string>
+    <string name="events_no_events">No events on this day.\nTap + to add one.</string>
+
+    <!-- Add event dialog -->
+    <string name="dialog_add_event_title">New Event</string>
+    <string name="dialog_event_title_hint">Title *</string>
+    <string name="dialog_event_desc_hint">Description (optional)</string>
+    <string name="dialog_event_type_label">Event Type</string>
+    <string name="dialog_start_time">Start Time</string>
+    <string name="dialog_end_time">End Time</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_add_event">Add new event</string>
+    <string name="cd_delete_event">Delete event</string>
+    <string name="cd_previous_month">Previous month</string>
+    <string name="cd_next_month">Next month</string>
+    <string name="cd_start_hour">Start hour</string>
+    <string name="cd_start_minute">Start minute</string>
+    <string name="cd_end_hour">End hour</string>
+    <string name="cd_end_minute">End minute</string>
 </resources>
