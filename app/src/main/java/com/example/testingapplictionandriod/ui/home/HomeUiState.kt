@@ -1,5 +1,5 @@
 package com.example.testingapplictionandriod.ui.home
 
 data class HomeUiState(
-    val greeting: String = "Hello, Android!"
+    val greeting: String = "Hello, aman!"
 )
