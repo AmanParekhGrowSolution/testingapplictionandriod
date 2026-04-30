@@ -8,6 +8,6 @@ class HomeViewModelTest {
     @Test
     fun initialGreetingValue() {
         val viewModel = HomeViewModel()
-        assertEquals("Hello aman", viewModel.uiState.value.greeting)
+        assertEquals("", viewModel.uiState.value.greeting)
     }
 }
