@@ -1,4 +1,69 @@
 <resources>
     <string name="app_name">testingapplictionandriod</string>
     <string name="home_greeting">Hello aman</string>
+
+    <!-- Calendar -->
+    <string name="app_calendar_title">Calendar</string>
+    <string name="btn_today">Today</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_add_event">Add Event</string>
+
+    <!-- Events section -->
+    <string name="events_title_no_selection">My Events</string>
+    <string name="events_count_suffix">events</string>
+    <string name="events_tap_to_select">Tap a date to see events</string>
+    <string name="events_no_events">No events on this day.\nTap + to add one.</string>
+
+    <!-- Add event dialog -->
+    <string name="dialog_add_event_title">New Event</string>
+    <string name="dialog_event_title_hint">Title *</string>
+    <string name="dialog_event_desc_hint">Description (optional)</string>
+    <string name="dialog_event_type_label">Event Type</string>
+    <string name="dialog_start_time">Start Time</string>
+    <string name="dialog_end_time">End Time</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_add_event">Add new event</string>
+    <string name="cd_delete_event">Delete event</string>
+    <string name="cd_previous_month">Previous month</string>
+    <string name="cd_next_month">Next month</string>
+    <string name="cd_start_hour">Start hour</string>
+    <string name="cd_start_minute">Start minute</string>
+    <string name="cd_end_hour">End hour</string>
+    <string name="cd_end_minute">End minute</string>
+    <string name="cd_increase_value">Increase %1$s</string>
+    <string name="cd_decrease_value">Decrease %1$s</string>
+
+    <!-- Event types -->
+    <string name="event_type_work">Work</string>
+    <string name="event_type_personal">Personal</string>
+    <string name="event_type_health">Health</string>
+    <string name="event_type_social">Social</string>
+    <string name="event_type_other">Other</string>
+
+    <!-- Time separator -->
+    <string name="time_separator">:</string>
+
+    <!-- Event time range format -->
+    <string name="event_time_range">%1$s:%2$s — %3$s:%4$s</string>
+
+    <!-- Calendar day headers -->
+    <string-array name="calendar_day_headers">
+        <item>Su</item>
+        <item>Mo</item>
+        <item>Tu</item>
+        <item>We</item>
+        <item>Th</item>
+        <item>Fr</item>
+        <item>Sa</item>
+    </string-array>
+
+    <!-- Month/year header format -->
+    <string name="format_month_year">%1$s %2$d</string>
+
+    <!-- Events count plural -->
+    <plurals name="events_count">
+        <item quantity="one">%d event</item>
+        <item quantity="other">%d events</item>
+    </plurals>
 </resources>
