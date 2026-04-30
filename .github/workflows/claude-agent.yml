@@ -79,6 +79,7 @@ jobs:
           claude_args: >-
             --model claude-sonnet-4-6
             --max-turns 40
+            --permission-mode bypassPermissions
 
           prompt: |
             You are an autonomous Android coding agent triggered by GitHub Issue #${{ github.event.issue.number }}.
@@ -90,6 +91,12 @@ jobs:
 
             **Description:**
             ${{ github.event.issue.body }}
+
+            ## Scope rules — STRICT
+
+            - Only modify files needed to satisfy the issue's stated acceptance criteria.
+            - **Never edit files under `.github/`, `gradle/`, `gradle.properties`, `settings.gradle*`, or top-level `build.gradle*`** unless the issue explicitly asks you to. Workflow and build configuration are off-limits.
+            - Do not "improve" or "fix" unrelated code you happen to read along the way. If something looks wrong but is out of scope, mention it in the PR description instead of changing it.
 
             ## Instructions
 
