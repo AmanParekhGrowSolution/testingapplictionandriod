@@ -15,7 +15,7 @@ jobs:
     name: Auto-fix Review Violations
     if: "${{ github.event.label.name == 'review: blocked' }}"
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
 
     concurrency:
       group: claude-autofix-pr-${{ github.event.pull_request.number }}
@@ -36,12 +36,12 @@ jobs:
           NEXT=$((PRIOR + 1))
           echo "attempt=$NEXT" >> "$GITHUB_OUTPUT"
 
-          if [ "$NEXT" -gt 3 ]; then
+          if [ "$NEXT" -gt 8 ]; then
             echo "max_reached=true" >> "$GITHUB_OUTPUT"
             gh api -X POST "repos/$REPO/issues/$PR/comments" \
-              -f body="## 🛑 Auto-fix gave up after 3 attempts
+              -f body="## 🛑 Auto-fix gave up after 8 attempts
 
-          Claude tried to resolve the review violations 3 times without success. **Manual intervention required.**
+          Claude tried to resolve the review violations 8 times without success. **Manual intervention required.**
 
           Read the latest \`Claude Code Review\` comment + inline comments and fix manually."
           else
@@ -97,12 +97,12 @@ jobs:
           github_token: ${{ secrets.AGENT_PAT }}
           claude_args: >-
             --model claude-sonnet-4-6
-            --max-turns 30
+            --max-turns 80
             --permission-mode bypassPermissions
 
           prompt: |
             You are auto-fixing CLAUDE.md violations on PR #${{ github.event.pull_request.number }}.
-            This is **attempt ${{ steps.attempt_check.outputs.attempt }} of 3**.
+            This is **attempt ${{ steps.attempt_check.outputs.attempt }} of 8**.
 
             ## Context
 
