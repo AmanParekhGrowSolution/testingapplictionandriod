@@ -85,6 +85,7 @@
     <!-- Date format patterns -->
     <string name="date_format_full">EEE, MMM d, yyyy</string>
     <string name="date_format_day_month">EEEE, MMM d</string>
+    <string name="date_format_month_only">MMMM</string>
 
     <!-- Time display format -->
     <string name="time_hhmm">%1$s:%2$s</string>

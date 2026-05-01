@@ -192,7 +192,7 @@ private fun CalendarTopBar(
     onGoToToday: () -> Unit
 ) {
     val cal = java.util.Calendar.getInstance().apply { set(year, month - 1, 1) }
-    val monthName = SimpleDateFormat("MMMM", Locale.getDefault()).format(cal.time)
+    val monthName = SimpleDateFormat(stringResource(R.string.date_format_month_only), Locale.getDefault()).format(cal.time)
 
     Row(
         modifier = Modifier
@@ -267,7 +267,7 @@ private fun WeekdayHeaders() {
                 text = label,
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
-                color = Color.White.copy(alpha = 0.50f),
+                color = Color.White.copy(alpha = 0.87f),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
@@ -398,8 +398,8 @@ private fun CalendarDayCell(
                         if (dayEvents.size > 3) {
                             Text(
                                 text = stringResource(R.string.events_overflow_count, dayEvents.size - 3),
-                                color = if (isSelected || isToday) Color.White.copy(alpha = 0.80f)
-                                        else Color.White.copy(alpha = 0.50f),
+                                color = if (isSelected || isToday) Color.White
+                                        else Color.White.copy(alpha = 0.87f),
                                 fontSize = 8.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -527,7 +527,7 @@ private fun PanelEmptyState(message: String) {
     ) {
         Text(
             text = message,
-            color = Color.White.copy(alpha = 0.55f),
+            color = Color.White.copy(alpha = 0.87f),
             fontSize = 14.sp,
             textAlign = TextAlign.Center
         )
@@ -584,14 +584,14 @@ private fun EventPanelCard(
                     event.endHour.padded(),
                     event.endMinute.padded()
                 ),
-                color = Color.White.copy(alpha = 0.58f),
+                color = Color.White.copy(alpha = 0.87f),
                 fontSize = 12.sp
             )
             if (event.description.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = event.description,
-                    color = Color.White.copy(alpha = 0.50f),
+                    color = Color.White.copy(alpha = 0.87f),
                     fontSize = 12.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
