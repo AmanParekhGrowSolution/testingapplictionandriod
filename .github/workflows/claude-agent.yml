@@ -134,6 +134,18 @@ jobs:
 
             4. **Verify** — run `./gradlew assembleDebug` and fix any compile errors. Then run `./gradlew test`.
 
+            4a. **Run the deterministic CLAUDE.md compliance linter** and fix every line it reports before opening the PR:
+                ```
+                bash scripts/check-claude-md.sh --diff origin/main
+                ```
+                **Do not push if this exits non-zero.** Common violations it catches:
+                - `[G1]` flat `Color.White.copy(...)` used as a `.background(...)` — must use `Brush.linearGradient`
+                - `[G3]` text alpha ≠ 0.87f — `Text(color = Color.White.copy(alpha = 0.5f))` must be `0.87f`
+                - `[G4]` icon tint has alpha — must be `tint = Color.White`
+                - `[A1]` `IconButton` touch target < 48 dp
+                - `[S2]` single-char hardcoded separator like `Text(":")` — move to `strings.xml`
+                - `[ARCH2]` `.collectAsState()` — must be `.collectAsStateWithLifecycle()`
+
             5. **Create a branch** named:
                `claude/${{ contains(github.event.label.name, 'fix') && 'fix' || 'feat' }}-issue-${{ github.event.issue.number }}-<short-description>`
 
@@ -153,7 +165,20 @@ jobs:
 
             If the scope is unclear, comment on the issue asking for clarification — do NOT create a PR with guesswork.
 
-      # ── 5. Add "implemented" label (fallback) ─────────────────────────────
+      # ── 5. Deterministic CLAUDE.md compliance gate ───────────────────────────
+      # Catches gradient/alpha/tint/separator/architecture violations that the
+      # LLM may have missed. Fails the workflow before the PR is opened, so the
+      # agent must address every match rather than pushing a violating branch.
+      - name: Verify CLAUDE.md compliance (deterministic)
+        if: success()
+        run: |
+          bash scripts/check-claude-md.sh --diff origin/main \
+            || {
+              echo "::error::Deterministic linter found CLAUDE.md violations in the agent's changes. Review the output above and fix all flagged lines before opening a PR."
+              exit 1
+            }
+
+      # ── 6. Add "implemented" label (fallback) ─────────────────────────────
       - name: Add implemented label
         if: success()
         uses: actions/github-script@v7

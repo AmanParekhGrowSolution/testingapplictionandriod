@@ -130,7 +130,7 @@ jobs:
             2. Read the **most recent** review summary comment:
                ```
                gh pr view ${{ github.event.pull_request.number }} --json comments \
-                 --jq '[.comments[] | select(.body | contains("Claude Code Review"))] | last | .body'
+                 --jq '[.comments[] | select(.body | contains("Claude Code Review") or contains("PR Review") or contains("CLAUDE.md Compliance") or contains("Code Review")) ] | last | .body'
                ```
 
             3. Read all **inline** review comments (file + line + body):
@@ -139,14 +139,26 @@ jobs:
                  --jq '[.[] | {path: .path, line: .line, body: .body}]'
                ```
 
-            4. **Fix every blocking violation** described in those comments. Apply the
-               reviewer's suggested fix. Stay within scope — do NOT touch files that
-               were not flagged. Do NOT edit `.github/`, `gradle/`, `gradle.properties`,
-               `settings.gradle*`, or top-level `build.gradle*`.
+            4. **Fix every blocking violation using a rule-class sweep — not just the flagged lines.**
 
-            5. Re-read CLAUDE.md rules and self-check your fix against them before committing.
+               For each blocking violation in the review comment:
+               - Identify the **rule class** (e.g. "text alpha ≠ 0.87f", "flat solid background",
+                 "icon tint has alpha", "hardcoded separator", "touch target < 48 dp").
+               - `grep` **all changed files in the PR diff** for every other instance of the same
+                 rule class. Fix ALL matches, not just the specific lines the reviewer mentioned.
+                 The reviewer samples; you must sweep every instance.
 
-            6. Verify locally:
+               Stay within scope — do NOT touch files that were not changed in this PR.
+               Do NOT edit `.github/`, `gradle/`, `gradle.properties`, `settings.gradle*`,
+               or top-level `build.gradle*`.
+
+            5. After fixing, run the deterministic compliance script and resolve every line it reports:
+               ```
+               bash scripts/check-claude-md.sh --diff origin/main
+               ```
+               Fix any remaining violations before continuing. **Do not proceed to step 6 if this exits non-zero.**
+
+            6. Verify build and tests:
                - `./gradlew assembleDebug` — must compile
                - `./gradlew test` — must pass
 
@@ -172,9 +184,21 @@ jobs:
 
             If you genuinely cannot fix a violation (e.g. the rule conflicts with
             another rule), do NOT push a no-op commit — instead post a comment
-            explaining why and exit. The 3-attempt cap will then guard against loops.
+            explaining why and exit. The attempt cap will then guard against loops.
 
-      # ── 6. Failure comment ────────────────────────────────────────────────
+      # ── 6. Deterministic compliance gate (runs after Claude's edits) ────────
+      # If the LLM only fixed the flagged lines and missed other instances of
+      # the same rule, this step catches them before a push happens.
+      - name: Verify CLAUDE.md compliance (deterministic)
+        if: steps.attempt_check.outputs.max_reached == 'false'
+        run: |
+          bash scripts/check-claude-md.sh --diff origin/main \
+            || {
+              echo "::error::Deterministic linter still finds violations. The autofix must sweep ALL instances of each rule class, not just the lines flagged by the reviewer. See output above."
+              exit 1
+            }
+
+      # ── 7. Failure comment ────────────────────────────────────────────────
       - name: Post failure comment
         if: failure() && steps.attempt_check.outputs.max_reached == 'false'
         env:
