@@ -68,6 +68,8 @@
 
     <!-- Event time range format -->
     <string name="event_time_range">%1$s:%2$s — %3$s:%4$s</string>
+    <string name="event_detail_datetime">%1$s · %2$s:%3$s – %4$s:%5$s</string>
+    <string name="event_date_short">%1$d/%2$d</string>
 
     <!-- Calendar day headers — Monday-first (matches reference design) -->
     <string-array name="calendar_day_headers">

@@ -140,7 +140,7 @@ fun CreateEventScreen(
                             if (uiState.newEventTitle.isEmpty()) {
                                 Text(
                                     text = stringResource(R.string.hint_event_title),
-                                    color = Color.White.copy(alpha = 0.30f),
+                                    color = Color.White.copy(alpha = 0.87f),
                                     fontSize = 28.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -192,7 +192,7 @@ fun CreateEventScreen(
                     Icon(
                         imageVector = Icons.Filled.DateRange,
                         contentDescription = stringResource(R.string.label_date),
-                        tint = Color(0xFF6366F1),
+                        tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                     Text(
@@ -316,7 +316,7 @@ fun CreateEventScreen(
 private fun SectionLabel(text: String) {
     Text(
         text = text.uppercase(),
-        color = Color.White.copy(alpha = 0.50f),
+        color = Color.White.copy(alpha = 0.87f),
         fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
         letterSpacing = 0.8.sp

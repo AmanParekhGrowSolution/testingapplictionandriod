@@ -130,7 +130,14 @@ fun EventDetailScreen(
                             "EEEE, MMM d", Locale.getDefault()
                         ).format(cal.time)
                         Text(
-                            text = "$dateStr · ${event.startHour.padded()}:${event.startMinute.padded()} – ${event.endHour.padded()}:${event.endMinute.padded()}",
+                            text = stringResource(
+                                R.string.event_detail_datetime,
+                                dateStr,
+                                event.startHour.padded(),
+                                event.startMinute.padded(),
+                                event.endHour.padded(),
+                                event.endMinute.padded()
+                            ),
                             color = Color.White.copy(alpha = 0.87f),
                             fontSize = 14.sp
                         )
@@ -184,7 +191,7 @@ fun EventDetailScreen(
                     StatDivider()
                     StatItem(
                         label = stringResource(R.string.label_date),
-                        value = "${event.day}/${event.month}"
+                        value = stringResource(R.string.event_date_short, event.day, event.month)
                     )
                 }
 
@@ -198,7 +205,7 @@ fun EventDetailScreen(
                         Column {
                             Text(
                                 text = stringResource(R.string.dialog_start_time).uppercase(),
-                                color = Color.White.copy(alpha = 0.45f),
+                                color = Color.White.copy(alpha = 0.87f),
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -254,7 +261,7 @@ private fun StatItem(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = label,
-            color = Color.White.copy(alpha = 0.50f),
+            color = Color.White.copy(alpha = 0.87f),
             fontSize = 11.sp,
             fontWeight = FontWeight.SemiBold
         )
@@ -298,7 +305,7 @@ private fun DetailSection(title: String, content: @Composable () -> Unit) {
     ) {
         Text(
             text = title.uppercase(),
-            color = Color.White.copy(alpha = 0.38f),
+            color = Color.White.copy(alpha = 0.87f),
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp

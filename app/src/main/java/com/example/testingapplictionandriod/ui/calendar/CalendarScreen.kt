@@ -210,7 +210,7 @@ private fun CalendarTopBar(
             )
             Text(
                 text = year.toString(),
-                color = Color.White.copy(alpha = 0.55f),
+                color = Color.White.copy(alpha = 0.87f),
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp
             )
@@ -621,7 +621,7 @@ private fun EventPanelCard(
             Icon(
                 imageVector = Icons.Filled.Delete,
                 contentDescription = stringResource(R.string.cd_delete_event),
-                tint = Color.White.copy(alpha = 0.50f),
+                tint = Color.White,
                 modifier = Modifier.size(18.dp)
             )
         }
