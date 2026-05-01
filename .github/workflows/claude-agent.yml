@@ -82,6 +82,7 @@ jobs:
           github_token: ${{ secrets.AGENT_PAT }}
           claude_args: >-
             --model claude-sonnet-4-6
+            --effort high
             --max-turns 100
             --permission-mode bypassPermissions
 
@@ -95,6 +96,22 @@ jobs:
 
             **Description:**
             ${{ github.event.issue.body }}
+
+            ## Available skills
+
+            This repo ships project-local skills at `.claude/skills/`. Auto-invoke them via
+            the `Skill` tool whenever the issue matches:
+
+            - **`android-admob`** — use when the issue asks to add ads / monetize / integrate
+              AdMob / banner / interstitial / app-open / rewarded ads, or mentions a
+              `ca-app-pub-...` ID. The skill encodes the full Koin-DI wiring + Play Store
+              policy guardrails — do not hand-roll AdMob code.
+            - **`android-ui-replicator`** — use when the issue includes a screenshot or
+              design reference and asks to replicate / clone / rebuild / convert a screen
+              into Kotlin + XML.
+
+            If a skill matches, invoke it BEFORE writing code — its workflow supersedes
+            the generic "Implement" step below for that subtask.
 
             ## Scope rules — STRICT
 

@@ -97,12 +97,26 @@ jobs:
           github_token: ${{ secrets.AGENT_PAT }}
           claude_args: >-
             --model claude-sonnet-4-6
+            --effort high
             --max-turns 80
             --permission-mode bypassPermissions
 
           prompt: |
             You are auto-fixing CLAUDE.md violations on PR #${{ github.event.pull_request.number }}.
             This is **attempt ${{ steps.attempt_check.outputs.attempt }} of 8**.
+
+            ## Available skills
+
+            This repo ships project-local skills at `.claude/skills/`. Auto-invoke them via
+            the `Skill` tool whenever the fix involves:
+
+            - **`android-admob`** — use when the violation is in AdMob / ad-related code.
+              The skill encodes the correct Koin-DI wiring and Play Store policy guardrails
+              — do not hand-patch ad code without invoking it.
+            - **`android-ui-replicator`** — use when the violation is in a screen that was
+              originally replicated from a screenshot.
+
+            If a skill matches, invoke it BEFORE rewriting the violating code.
 
             ## Context
 

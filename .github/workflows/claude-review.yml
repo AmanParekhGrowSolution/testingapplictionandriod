@@ -27,6 +27,7 @@ jobs:
           github_token: ${{ secrets.AGENT_PAT }}
           claude_args: >-
             --model claude-sonnet-4-6
+            --effort high
             --max-turns 60
             --permission-mode bypassPermissions
 
@@ -54,6 +55,11 @@ jobs:
                Then apply the outcome:
                - PASS (no blocking violations): `gh pr edit ${{ github.event.pull_request.number }} --add-label "review: passed"`
                - FAIL (any mandatory rule violated): `gh pr edit ${{ github.event.pull_request.number }} --add-label "review: blocked"`
+
+            - **Skill alignment**: if the diff implements AdMob / ad-related code or
+              replicates a screen from a design reference, note (do NOT block) whether the
+              `android-admob` or `android-ui-replicator` skill was used. Hand-rolled ad
+              code without the skill is worth flagging in the summary comment.
 
             Be strict. CLAUDE.md uses words like "MANDATORY" and "no exceptions" — treat violations as blocking, not advisory.
 
