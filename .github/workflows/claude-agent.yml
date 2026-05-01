@@ -123,43 +123,65 @@ jobs:
 
             1. **Explore** the codebase — use `find`, `cat`, `Read`, `Grep` to understand the structure and patterns.
 
-            2. **Read `CLAUDE.md`** at the repo root — it contains mandatory gradient design rules and architecture you MUST follow.
+            2. **Plan — POST BEFORE EDITING.** Before any Edit/Write tool call, post a comment on issue #${{ github.event.issue.number }} with the following structure (use `gh issue comment ${{ github.event.issue.number }} --body "..."`):
 
-            3. **Implement** the ${{ contains(github.event.label.name, 'fix') && 'bug fix' || 'feature' }}:
+               ```
+               ## Implementation plan (pre-edit)
+               **Files I will modify:** <full list with paths>
+               **Every UI surface I will create or touch:** <enumerate every Box / Card / Surface / Row / Column that will receive a .background(...) — INCLUDE nested decorative surfaces: drag handles, pills, badges, dividers, chips, tab indicators. These are the surfaces that autofix loops keep missing.>
+               **Every gradient I will use:** <surface name -> Brush.linearGradient/verticalGradient + token from CLAUDE.md §2 (Primary/Accent/Success/Warning/Error/Background)>
+               **Every Color parameter I will thread:** <e.g. `color: Color` passed parent->child, `tint: Color` threaded through helpers — list every Color param crossing a composable boundary so the `color = color` violation pattern is caught before it compiles>
+               **State-shape changes:** <UiState fields added/renamed/removed; downstream ViewModel + Test files that must update in the same PR>
+               **Hardcoded glyphs / separators:** <none, OR: list with the strings.xml key each will become>
+               **Tests I will add or update:** <full file list>
+               ```
+
+               The plan must be concrete — "Update UI" or "fix all violations" is not acceptable. If implementation reveals the plan was wrong, update the comment before continuing.
+
+            3. **Read `CLAUDE.md`** at the repo root — it contains mandatory gradient design rules and architecture you MUST follow.
+
+            4. **Implement** the ${{ contains(github.event.label.name, 'fix') && 'bug fix' || 'feature' }}:
                - ALL new UI must use `Brush.linearGradient` / `verticalGradient` — flat colours are forbidden
                - Follow MVVM: ViewModel → UiState sealed class → stateless composables
                - Write unit tests for any new ViewModel or Repository logic
                - Add `contentDescription` to every Icon and Image
                - No `!!` operators
 
-            4. **Verify** — run `./gradlew assembleDebug` and fix any compile errors. Then run `./gradlew test`.
+            5. **Verify** — run `./gradlew assembleDebug` and fix any compile errors. Then run `./gradlew test`.
 
-            4a. **Run the deterministic CLAUDE.md compliance linter** and fix every line it reports before opening the PR:
+            5a. **Self-critique against plan.** Run `git diff origin/main` and walk through every enumerated item in the plan comment:
+               - Does the diff contain the change? If not, why?
+               - Did your edits introduce any NEW Box/Card/Surface/Row/Column that was NOT in the enumeration? If yes, treat it as a plan miss — verify it uses `Brush.*` not a flat `Color`, and update the plan comment.
+               - Did any `color`/`tint` parameter appear in the diff that was not listed in the plan? Trace the parameter end-to-end and verify the value at every call site.
+               Only proceed to step 5b once every diff item maps to a plan entry.
+
+            5b. **Run the deterministic CLAUDE.md compliance linter** and fix every line it reports before opening the PR:
                 ```
                 bash scripts/check-claude-md.sh --diff origin/main
                 ```
                 **Do not push if this exits non-zero.** Common violations it catches:
-                - `[G1]` flat `Color.White.copy(...)` used as a `.background(...)` — must use `Brush.linearGradient`
+                - `[G1]` flat solid background (single-line and multi-line `.background(Color...)`) — use `Brush.linearGradient`
                 - `[G3]` text alpha ≠ 0.87f — `Text(color = Color.White.copy(alpha = 0.5f))` must be `0.87f`
                 - `[G4]` icon tint has alpha — must be `tint = Color.White`
+                - `[G5]` `color`/`tint` parameter threaded without a `Color.White` literal — verify the caller value
                 - `[A1]` `IconButton` touch target < 48 dp
                 - `[S2]` single-char hardcoded separator like `Text(":")` — move to `strings.xml`
                 - `[ARCH2]` `.collectAsState()` — must be `.collectAsStateWithLifecycle()`
 
-            5. **Create a branch** named:
+            6. **Create a branch** named:
                `claude/${{ contains(github.event.label.name, 'fix') && 'fix' || 'feat' }}-issue-${{ github.event.issue.number }}-<short-description>`
 
-            6. **Commit** all changes with message:
+            7. **Commit** all changes with message:
                `${{ contains(github.event.label.name, 'fix') && 'fix' || 'feat' }}: <description> (#${{ github.event.issue.number }})`
 
-            7. **Open a PR** targeting `main` with:
+            8. **Open a PR** targeting `main` with:
                - Title matching the commit message
                - Body with: Summary, list of changed files, testing notes
                - Footer: `Closes #${{ github.event.issue.number }}`
 
-            8. **Comment on the issue** with the PR link.
+            9. **Comment on the issue** with the PR link.
 
-            9. **Enable auto-merge** on the PR you just opened:
+            10. **Enable auto-merge** on the PR you just opened:
                `gh pr merge <PR_URL_OR_NUMBER> --auto --squash --delete-branch`
                This queues the PR to merge automatically once all CI checks pass.
 
