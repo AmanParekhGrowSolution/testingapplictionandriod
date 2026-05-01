@@ -461,7 +461,7 @@ private fun EventsPanel(
             Text(
                 text = if (selectedDay != null) {
                     val cal = java.util.Calendar.getInstance().apply { set(year, month - 1, selectedDay) }
-                    SimpleDateFormat("EEEE, MMM d", Locale.getDefault()).format(cal.time)
+                    SimpleDateFormat(stringResource(R.string.date_format_day_month), Locale.getDefault()).format(cal.time)
                 } else {
                     stringResource(R.string.events_title_no_selection)
                 },
@@ -473,7 +473,7 @@ private fun EventsPanel(
             if (selectedDay != null && selectedEvents.isNotEmpty()) {
                 Text(
                     text = pluralStringResource(R.plurals.events_count, selectedEvents.size, selectedEvents.size),
-                    color = Color.White.copy(alpha = 0.55f),
+                    color = Color.White.copy(alpha = 0.87f),
                     fontSize = 13.sp
                 )
             }
