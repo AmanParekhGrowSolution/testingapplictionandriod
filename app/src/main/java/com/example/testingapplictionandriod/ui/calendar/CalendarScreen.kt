@@ -350,7 +350,9 @@ private fun CalendarDayCell(
                                 RoundedCornerShape(14.dp)
                             )
                             else -> Modifier.background(
-                                Color.White.copy(alpha = 0.04f),
+                                Brush.linearGradient(
+                                    listOf(Color(0xFF6366F1).copy(alpha = 0.04f), Color(0xFF8B5CF6).copy(alpha = 0.04f))
+                                ),
                                 RoundedCornerShape(14.dp)
                             )
                         }

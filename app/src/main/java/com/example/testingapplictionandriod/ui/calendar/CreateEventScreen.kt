@@ -158,7 +158,11 @@ fun CreateEventScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(1.dp)
-                        .background(Color.White.copy(alpha = 0.10f))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(Color(0xFF6366F1).copy(alpha = 0.10f), Color(0xFF8B5CF6).copy(alpha = 0.10f))
+                            )
+                        )
                 )
 
                 // Date row
@@ -175,7 +179,12 @@ fun CreateEventScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White.copy(alpha = 0.06f), RoundedCornerShape(14.dp))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(Color(0xFF6366F1).copy(alpha = 0.06f), Color(0xFF8B5CF6).copy(alpha = 0.06f))
+                            ),
+                            RoundedCornerShape(14.dp)
+                        )
                         .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -266,7 +275,12 @@ fun CreateEventScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White.copy(alpha = 0.06f), RoundedCornerShape(14.dp))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(Color(0xFF6366F1).copy(alpha = 0.06f), Color(0xFF8B5CF6).copy(alpha = 0.06f))
+                            ),
+                            RoundedCornerShape(14.dp)
+                        )
                         .padding(16.dp)
                 ) {
                     BasicTextField(
@@ -321,7 +335,12 @@ private fun TimeSpinnerBlock(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
+            .background(
+                Brush.linearGradient(
+                    listOf(Color(0xFF6366F1).copy(alpha = 0.08f), Color(0xFF8B5CF6).copy(alpha = 0.08f))
+                ),
+                RoundedCornerShape(12.dp)
+            )
             .padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center

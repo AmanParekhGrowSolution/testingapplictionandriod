@@ -96,7 +96,9 @@ fun EventDetailScreen(
                         Box(
                             modifier = Modifier
                                 .background(
-                                    Color.White.copy(alpha = 0.20f),
+                                    Brush.linearGradient(
+                                        listOf(Color(0xFF6366F1).copy(alpha = 0.20f), Color(0xFF8B5CF6).copy(alpha = 0.20f))
+                                    ),
                                     RoundedCornerShape(999.dp)
                                 )
                                 .padding(horizontal = 12.dp, vertical = 5.dp)
@@ -160,7 +162,12 @@ fun EventDetailScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(Color(0xFF6366F1).copy(alpha = 0.08f), Color(0xFF8B5CF6).copy(alpha = 0.08f))
+                            ),
+                            RoundedCornerShape(16.dp)
+                        )
                         .padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
@@ -270,7 +277,11 @@ private fun StatDivider() {
         modifier = Modifier
             .width(1.dp)
             .height(36.dp)
-            .background(Color.White.copy(alpha = 0.12f))
+            .background(
+                Brush.linearGradient(
+                    listOf(Color(0xFF6366F1).copy(alpha = 0.12f), Color(0xFF8B5CF6).copy(alpha = 0.12f))
+                )
+            )
     )
 }
 
@@ -279,7 +290,12 @@ private fun DetailSection(title: String, content: @Composable () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White.copy(alpha = 0.06f), RoundedCornerShape(14.dp))
+            .background(
+                Brush.linearGradient(
+                    listOf(Color(0xFF6366F1).copy(alpha = 0.06f), Color(0xFF8B5CF6).copy(alpha = 0.06f))
+                ),
+                RoundedCornerShape(14.dp)
+            )
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
