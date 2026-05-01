@@ -447,7 +447,12 @@ private fun EventsPanel(
                 modifier = Modifier
                     .width(36.dp)
                     .height(4.dp)
-                    .background(Color.White.copy(alpha = 0.22f), RoundedCornerShape(2.dp))
+                    .background(
+                        Brush.linearGradient(
+                            listOf(Color.White.copy(alpha = 0.15f), Color.White.copy(alpha = 0.28f))
+                        ),
+                        RoundedCornerShape(2.dp)
+                    )
             )
         }
 
