@@ -24,17 +24,15 @@ class MainActivity : ComponentActivity() {
 
                 when (val screen = appState.value.currentScreen) {
                     is AppScreen.Splash -> {
-                        val context = this
                         SplashScreen(
-                            onSplashDone = { appViewModel.onSplashComplete(context) }
+                            onSplashDone = { appViewModel.onSplashComplete() }
                         )
                     }
                     is AppScreen.Onboarding -> {
-                        val context = this
                         OnboardingScreen(
                             step = appState.value.onboardingStep,
                             onNext = appViewModel::onOnboardingNext,
-                            onGetStarted = { appViewModel.onOnboardingComplete(context) }
+                            onGetStarted = { appViewModel.onOnboardingComplete() }
                         )
                     }
                     is AppScreen.Main -> {
