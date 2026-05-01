@@ -24,8 +24,8 @@ class MainActivity : ComponentActivity() {
                     onNextMonth = viewModel::onNextMonth,
                     onGoToToday = viewModel::onGoToToday,
                     onDaySelected = viewModel::onDaySelected,
-                    onShowAddEvent = viewModel::onShowAddEvent,
-                    onDismissAddEvent = viewModel::onDismissAddEvent,
+                    onShowCreateEvent = viewModel::onShowCreateEvent,
+                    onDismissCreateEvent = viewModel::onDismissCreateEvent,
                     onNewEventTitleChange = viewModel::onNewEventTitleChange,
                     onNewEventDescriptionChange = viewModel::onNewEventDescriptionChange,
                     onNewEventTypeChange = viewModel::onNewEventTypeChange,
@@ -34,7 +34,9 @@ class MainActivity : ComponentActivity() {
                     onNewEventEndHourChange = viewModel::onNewEventEndHourChange,
                     onNewEventEndMinuteChange = viewModel::onNewEventEndMinuteChange,
                     onAddEvent = viewModel::onAddEvent,
-                    onDeleteEvent = viewModel::onDeleteEvent
+                    onDeleteEvent = viewModel::onDeleteEvent,
+                    onShowEventDetail = viewModel::onShowEventDetail,
+                    onBackToCalendar = viewModel::onBackToCalendar
                 )
             }
         }

@@ -54,14 +54,14 @@ class CalendarViewModel @Inject constructor() : ViewModel() {
         _uiState.update { it.copy(selectedDay = day) }
     }
 
-    fun onShowAddEvent() {
-        _uiState.update { it.copy(showAddEventDialog = true) }
+    fun onShowCreateEvent() {
+        _uiState.update { it.copy(currentScreen = CalendarNavScreen.CreateEvent) }
     }
 
-    fun onDismissAddEvent() {
+    fun onDismissCreateEvent() {
         _uiState.update {
             it.copy(
-                showAddEventDialog = false,
+                currentScreen = CalendarNavScreen.Month,
                 newEventTitle = "",
                 newEventDescription = "",
                 newEventType = EventType.PERSONAL,
@@ -71,6 +71,14 @@ class CalendarViewModel @Inject constructor() : ViewModel() {
                 newEventEndMinute = 0
             )
         }
+    }
+
+    fun onShowEventDetail(eventId: String) {
+        _uiState.update { it.copy(currentScreen = CalendarNavScreen.EventDetail(eventId)) }
+    }
+
+    fun onBackToCalendar() {
+        _uiState.update { it.copy(currentScreen = CalendarNavScreen.Month) }
     }
 
     fun onNewEventTitleChange(title: String) {
@@ -125,7 +133,7 @@ class CalendarViewModel @Inject constructor() : ViewModel() {
         _uiState.update {
             it.copy(
                 events = it.events + event,
-                showAddEventDialog = false,
+                currentScreen = CalendarNavScreen.Month,
                 newEventTitle = "",
                 newEventDescription = "",
                 newEventType = EventType.PERSONAL,
@@ -138,18 +146,20 @@ class CalendarViewModel @Inject constructor() : ViewModel() {
     }
 
     fun onDeleteEvent(eventId: String) {
-        _uiState.update { it.copy(events = it.events.filter { e -> e.id != eventId }) }
+        _uiState.update {
+            it.copy(
+                events = it.events.filter { e -> e.id != eventId },
+                currentScreen = CalendarNavScreen.Month
+            )
+        }
     }
 
     private companion object {
         fun buildInitialState(): CalendarUiState {
             val today = java.util.Calendar.getInstance()
-            val year = today.get(java.util.Calendar.YEAR)
-            val month = today.get(java.util.Calendar.MONTH) + 1
-
             return CalendarUiState(
-                displayedYear = year,
-                displayedMonth = month,
+                displayedYear = today.get(java.util.Calendar.YEAR),
+                displayedMonth = today.get(java.util.Calendar.MONTH) + 1,
                 events = emptyList()
             )
         }

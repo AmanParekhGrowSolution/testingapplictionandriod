@@ -53,6 +53,16 @@ class CalendarViewModelTest {
     }
 
     @Test
+    fun initialState_screenIsMonth() = runTest {
+        val viewModel = CalendarViewModel()
+        viewModel.uiState.test {
+            val state = awaitItem()
+            assertTrue(state.currentScreen is CalendarNavScreen.Month)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun onNextMonth_incrementsMonth() = runTest {
         val viewModel = CalendarViewModel()
         viewModel.uiState.test {
@@ -161,31 +171,58 @@ class CalendarViewModelTest {
     }
 
     @Test
-    fun onShowAddEvent_setsDialogVisible() = runTest {
+    fun onShowCreateEvent_navigatesToCreateScreen() = runTest {
         val viewModel = CalendarViewModel()
         viewModel.uiState.test {
             val initial = awaitItem()
-            assertFalse(initial.showAddEventDialog)
-            viewModel.onShowAddEvent()
+            assertTrue(initial.currentScreen is CalendarNavScreen.Month)
+            viewModel.onShowCreateEvent()
             val afterShow = awaitItem()
-            assertTrue(afterShow.showAddEventDialog)
+            assertTrue(afterShow.currentScreen is CalendarNavScreen.CreateEvent)
             cancelAndIgnoreRemainingEvents()
         }
     }
 
     @Test
-    fun onDismissAddEvent_hidesDialogAndResetsForm() = runTest {
+    fun onDismissCreateEvent_returnsToMonthAndResetsForm() = runTest {
         val viewModel = CalendarViewModel()
         viewModel.uiState.test {
             awaitItem()
-            viewModel.onShowAddEvent()
+            viewModel.onShowCreateEvent()
             awaitItem()
-            viewModel.onNewEventTitleChange("Test")
+            viewModel.onNewEventTitleChange("Test Event")
             awaitItem()
-            viewModel.onDismissAddEvent()
+            viewModel.onDismissCreateEvent()
             val dismissed = awaitItem()
-            assertFalse(dismissed.showAddEventDialog)
+            assertTrue(dismissed.currentScreen is CalendarNavScreen.Month)
             assertEquals("", dismissed.newEventTitle)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun onShowEventDetail_navigatesToEventDetailScreen() = runTest {
+        val viewModel = CalendarViewModel()
+        viewModel.uiState.test {
+            awaitItem()
+            viewModel.onShowEventDetail("event-123")
+            val afterShow = awaitItem()
+            assertTrue(afterShow.currentScreen is CalendarNavScreen.EventDetail)
+            assertEquals("event-123", (afterShow.currentScreen as CalendarNavScreen.EventDetail).eventId)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun onBackToCalendar_returnsToMonthScreen() = runTest {
+        val viewModel = CalendarViewModel()
+        viewModel.uiState.test {
+            awaitItem()
+            viewModel.onShowEventDetail("event-456")
+            awaitItem()
+            viewModel.onBackToCalendar()
+            val afterBack = awaitItem()
+            assertTrue(afterBack.currentScreen is CalendarNavScreen.Month)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -198,7 +235,7 @@ class CalendarViewModelTest {
             val countBefore = initial.events.size
             viewModel.onDaySelected(15)
             awaitItem()
-            viewModel.onShowAddEvent()
+            viewModel.onShowCreateEvent()
             awaitItem()
             viewModel.onNewEventTitleChange("Team Meeting")
             awaitItem()
@@ -213,17 +250,17 @@ class CalendarViewModelTest {
     }
 
     @Test
-    fun onAddEvent_withValidTitle_closesDialog() = runTest {
+    fun onAddEvent_withValidTitle_navigatesBackToMonth() = runTest {
         val viewModel = CalendarViewModel()
         viewModel.uiState.test {
             awaitItem()
-            viewModel.onShowAddEvent()
+            viewModel.onShowCreateEvent()
             awaitItem()
             viewModel.onNewEventTitleChange("Meeting")
             awaitItem()
             viewModel.onAddEvent()
             val afterAdd = awaitItem()
-            assertFalse(afterAdd.showAddEventDialog)
+            assertTrue(afterAdd.currentScreen is CalendarNavScreen.Month)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -234,13 +271,13 @@ class CalendarViewModelTest {
         viewModel.uiState.test {
             val initial = awaitItem()
             val countBefore = initial.events.size
-            viewModel.onShowAddEvent()
-            val dialogState = awaitItem()
-            assertTrue(dialogState.showAddEventDialog)
+            viewModel.onShowCreateEvent()
+            val createState = awaitItem()
+            assertTrue(createState.currentScreen is CalendarNavScreen.CreateEvent)
             viewModel.onAddEvent()
             expectNoEvents()
             assertEquals(countBefore, viewModel.uiState.value.events.size)
-            assertTrue(viewModel.uiState.value.showAddEventDialog)
+            assertTrue(viewModel.uiState.value.currentScreen is CalendarNavScreen.CreateEvent)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -268,7 +305,7 @@ class CalendarViewModelTest {
             val countBefore = initial.events.size
             viewModel.onDaySelected(15)
             awaitItem()
-            viewModel.onShowAddEvent()
+            viewModel.onShowCreateEvent()
             awaitItem()
             viewModel.onNewEventTitleChange("To Delete")
             awaitItem()
@@ -279,6 +316,27 @@ class CalendarViewModelTest {
             val afterDelete = awaitItem()
             assertEquals(countBefore, afterDelete.events.size)
             assertFalse(afterDelete.events.any { it.id == event.id })
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun onDeleteEvent_navigatesBackToMonth() = runTest {
+        val viewModel = CalendarViewModel()
+        viewModel.uiState.test {
+            awaitItem()
+            viewModel.onShowCreateEvent()
+            awaitItem()
+            viewModel.onNewEventTitleChange("Event To Delete")
+            awaitItem()
+            viewModel.onAddEvent()
+            val afterAdd = awaitItem()
+            val event = afterAdd.events.first()
+            viewModel.onShowEventDetail(event.id)
+            awaitItem()
+            viewModel.onDeleteEvent(event.id)
+            val afterDelete = awaitItem()
+            assertTrue(afterDelete.currentScreen is CalendarNavScreen.Month)
             cancelAndIgnoreRemainingEvents()
         }
     }
