@@ -42,6 +42,7 @@
     <string name="duration_hours_minutes">%1$dh %2$dm</string>
 
     <!-- Content descriptions -->
+    <string name="cd_time_arrow">→</string>
     <string name="cd_add_event">Add new event</string>
     <string name="cd_delete_event">Delete event</string>
     <string name="cd_previous_month">Previous month</string>

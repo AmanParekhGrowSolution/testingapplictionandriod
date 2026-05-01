@@ -174,20 +174,17 @@ fun EventDetailScreen(
                 ) {
                     StatItem(
                         label = stringResource(R.string.label_duration),
-                        value = durationText,
-                        color = startColor
+                        value = durationText
                     )
                     StatDivider()
                     StatItem(
                         label = stringResource(R.string.label_event_type),
-                        value = stringResource(event.type.labelRes),
-                        color = endColor
+                        value = stringResource(event.type.labelRes)
                     )
                     StatDivider()
                     StatItem(
                         label = stringResource(R.string.label_date),
-                        value = "${event.day}/${event.month}",
-                        color = startColor
+                        value = "${event.day}/${event.month}"
                     )
                 }
 
@@ -213,7 +210,7 @@ fun EventDetailScreen(
                             )
                         }
                         Text(
-                            text = "→",
+                            text = stringResource(R.string.cd_time_arrow),
                             color = Color.White.copy(alpha = 0.45f),
                             fontSize = 20.sp
                         )
@@ -253,7 +250,7 @@ fun EventDetailScreen(
 }
 
 @Composable
-private fun StatItem(label: String, value: String, color: Color) {
+private fun StatItem(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = label,
@@ -264,7 +261,7 @@ private fun StatItem(label: String, value: String, color: Color) {
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = value,
-            color = color,
+            color = Color.White,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold
         )
