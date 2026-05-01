@@ -14,16 +14,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,16 +30,27 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.testingapplictionandriod.R
 import com.example.testingapplictionandriod.domain.model.EventType
-import java.text.SimpleDateFormat
-import java.util.Locale
+
+private val CBlue = Color(0xFF2564CF)
+private val CBlueDark = Color(0xFF1A3A80)
+private val CBlueBgSoft = Color(0xFFEEF5FF)
+private val CDanger = Color(0xFFDE3030)
+private val CDangerBg = Color(0xFFFBDADA)
+private val CInk = Color(0xFF1A1A2E)
+private val CInk3 = Color(0xFF3D3D5C)
+private val CMuted = Color(0xFF8B8BA7)
+private val CMuted2 = Color(0xFFC8C8D8)
+private val CHair = Color(0xFFE4E4ED)
+private val CSurface = Color(0xFFF7F7FB)
+private val CSuccessColor = Color(0xFF22C55E)
+private val CWarnColor = Color(0xFFF97316)
+private val CCoralColor = Color(0xFFE85C4A)
+private val CMintInk = Color(0xFF00897B)
 
 @Composable
 fun CreateEventScreen(
@@ -59,344 +68,353 @@ fun CreateEventScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color(0xFF0F0C29), Color(0xFF302B63), Color(0xFF24243E))
-                )
-            )
+            .background(Brush.verticalGradient(listOf(Color.White, CSurface)))
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Top bar: close | title | save
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
+            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 10.dp),
+                    .height(52.dp)
+                    .background(Brush.verticalGradient(listOf(Color.White, Color.White)))
+                    .padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onDismiss) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .clickable(onClick = onDismiss),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.cd_close),
-                        tint = Color.White
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = "Go back",
+                        tint = CInk,
+                        modifier = Modifier.size(22.dp)
                     )
                 }
                 Text(
-                    text = stringResource(R.string.screen_create_event),
-                    color = Color.White,
+                    text = "New Event",
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
+                    color = CInk,
                     modifier = Modifier
                         .weight(1f)
-                        .padding(start = 4.dp)
+                        .padding(horizontal = 12.dp)
                 )
                 Box(
                     modifier = Modifier
-                        .background(
-                            if (uiState.newEventTitle.isNotBlank())
-                                Brush.linearGradient(listOf(Color(0xFF6366F1), Color(0xFF8B5CF6)))
-                            else
-                                Brush.linearGradient(
-                                    listOf(
-                                        Color(0xFF6366F1).copy(alpha = 0.40f),
-                                        Color(0xFF8B5CF6).copy(alpha = 0.40f)
-                                    )
-                                ),
-                            RoundedCornerShape(999.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Brush.linearGradient(listOf(CBlue, CBlueDark)))
+                        .clickable(
+                            enabled = uiState.newEventTitle.isNotBlank(),
+                            onClick = onSave
                         )
-                        .clip(RoundedCornerShape(999.dp))
-                        .clickable(enabled = uiState.newEventTitle.isNotBlank(), onClick = onSave)
-                        .padding(horizontal = 20.dp, vertical = 10.dp)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.btn_save),
+                        text = "Save",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        fontSize = 15.sp
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
             }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(Brush.verticalGradient(listOf(CHair, CHair)))
+            )
 
-            // Scrollable form body
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 4.dp),
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Large title input
-                BasicTextField(
+                // Title field
+                InputField(
+                    label = "TITLE",
                     value = uiState.newEventTitle,
                     onValueChange = onTitleChange,
-                    textStyle = TextStyle(
-                        color = Color.White,
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    cursorBrush = SolidColor(Color(0xFF6366F1)),
-                    decorationBox = { innerField ->
-                        Box(modifier = Modifier.fillMaxWidth()) {
-                            if (uiState.newEventTitle.isEmpty()) {
-                                Text(
-                                    text = stringResource(R.string.hint_event_title),
-                                    color = Color.White.copy(alpha = 0.87f),
-                                    fontSize = 28.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                            innerField()
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
+                    placeholder = "Event title",
+                    isBig = true
                 )
 
-                // Subtle divider
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(
-                            Brush.linearGradient(
-                                listOf(Color(0xFF6366F1).copy(alpha = 0.10f), Color(0xFF8B5CF6).copy(alpha = 0.10f))
-                            )
+                // Date/time row
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    val selectedDay = uiState.selectedDay
+                    val month = MONTH_NAMES_SHORT[uiState.displayedMonth - 1]
+                    Box(modifier = Modifier.weight(1f)) {
+                        InputFieldStatic(
+                            label = "DATE",
+                            value = if (selectedDay != null) "$month $selectedDay" else "$month —"
                         )
-                )
-
-                // Date row
-                val dateLabel = uiState.selectedDay?.let { day ->
-                    val cal = java.util.Calendar.getInstance().apply {
-                        set(uiState.displayedYear, uiState.displayedMonth - 1, day)
                     }
-                    SimpleDateFormat(stringResource(R.string.date_format_full), Locale.getDefault()).format(cal.time)
-                } ?: run {
-                    val cal = java.util.Calendar.getInstance()
-                    SimpleDateFormat(stringResource(R.string.date_format_full), Locale.getDefault()).format(cal.time)
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            Brush.linearGradient(
-                                listOf(Color(0xFF6366F1).copy(alpha = 0.06f), Color(0xFF8B5CF6).copy(alpha = 0.06f))
-                            ),
-                            RoundedCornerShape(14.dp)
+                    Box(modifier = Modifier.weight(1f)) {
+                        InputFieldStatic(
+                            label = "START",
+                            value = formatTime(uiState.newEventStartHour, uiState.newEventStartMinute)
                         )
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.DateRange,
-                        contentDescription = stringResource(R.string.label_date),
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Text(
-                        text = dateLabel,
-                        color = Color.White,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.weight(1f)
-                    )
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        InputFieldStatic(
+                            label = "END",
+                            value = formatTime(uiState.newEventEndHour, uiState.newEventEndMinute)
+                        )
+                    }
                 }
 
-                // Start / End time row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+                // Time spinners row
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     Column(modifier = Modifier.weight(1f)) {
-                        SectionLabel(text = stringResource(R.string.dialog_start_time))
-                        Spacer(modifier = Modifier.height(6.dp))
-                        TimeSpinnerBlock(
+                        Text(
+                            text = "START TIME",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = CMuted,
+                            letterSpacing = 0.3.sp
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        TimeSpinner(
                             hour = uiState.newEventStartHour,
                             minute = uiState.newEventStartMinute,
                             onHourChange = onStartHourChange,
-                            onMinuteChange = onStartMinuteChange,
-                            hourDescription = stringResource(R.string.cd_start_hour),
-                            minuteDescription = stringResource(R.string.cd_start_minute)
+                            onMinuteChange = onStartMinuteChange
                         )
                     }
                     Column(modifier = Modifier.weight(1f)) {
-                        SectionLabel(text = stringResource(R.string.dialog_end_time))
-                        Spacer(modifier = Modifier.height(6.dp))
-                        TimeSpinnerBlock(
+                        Text(
+                            text = "END TIME",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = CMuted,
+                            letterSpacing = 0.3.sp
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        TimeSpinner(
                             hour = uiState.newEventEndHour,
                             minute = uiState.newEventEndMinute,
                             onHourChange = onEndHourChange,
-                            onMinuteChange = onEndMinuteChange,
-                            hourDescription = stringResource(R.string.cd_end_hour),
-                            minuteDescription = stringResource(R.string.cd_end_minute)
+                            onMinuteChange = onEndMinuteChange
                         )
                     }
                 }
 
-                // Event type chips
-                SectionLabel(text = stringResource(R.string.dialog_event_type_label))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    EventType.entries.forEach { type ->
-                        val isSelected = uiState.newEventType == type
-                        val (sc, ec) = type.gradientColors()
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .background(
-                                    if (isSelected) Brush.linearGradient(listOf(sc, ec))
-                                    else Brush.linearGradient(
-                                        listOf(sc.copy(alpha = 0.15f), ec.copy(alpha = 0.15f))
-                                    ),
-                                    RoundedCornerShape(10.dp)
+                // Event type
+                Column {
+                    Text(
+                        text = "TYPE",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = CMuted,
+                        letterSpacing = 0.3.sp
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        EventType.entries.forEach { type ->
+                            val isSelected = uiState.newEventType == type
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(36.dp)
+                                    .background(
+                                        if (isSelected) Brush.linearGradient(
+                                            listOf(
+                                                eventColor(type),
+                                                eventColor(type)
+                                            )
+                                        )
+                                        else Brush.linearGradient(listOf(Color.White, Color.White)),
+                                        RoundedCornerShape(10.dp)
+                                    )
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .clickable { onTypeChange(type) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = type.name.take(4),
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSelected) Color.White else CMuted
                                 )
-                                .clip(RoundedCornerShape(10.dp))
-                                .clickable { onTypeChange(type) }
-                                .padding(vertical = 8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(type.labelRes),
-                                color = Color.White,
-                                fontSize = 11.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                textAlign = TextAlign.Center
-                            )
+                            }
                         }
                     }
                 }
 
-                // Notes / description
-                SectionLabel(text = stringResource(R.string.label_notes))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            Brush.linearGradient(
-                                listOf(Color(0xFF6366F1).copy(alpha = 0.06f), Color(0xFF8B5CF6).copy(alpha = 0.06f))
-                            ),
-                            RoundedCornerShape(14.dp)
-                        )
-                        .padding(16.dp)
-                ) {
-                    BasicTextField(
-                        value = uiState.newEventDescription,
-                        onValueChange = onDescriptionChange,
-                        textStyle = TextStyle(
-                            color = Color.White,
-                            fontSize = 15.sp
-                        ),
-                        cursorBrush = SolidColor(Color(0xFF6366F1)),
-                        minLines = 3,
-                        decorationBox = { innerField ->
-                            if (uiState.newEventDescription.isEmpty()) {
-                                Text(
-                                    text = stringResource(R.string.hint_add_notes),
-                                    color = Color.White.copy(alpha = 0.87f),
-                                    fontSize = 15.sp
-                                )
-                            }
-                            innerField()
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
+                // Description field
+                InputField(
+                    label = "NOTES",
+                    value = uiState.newEventDescription,
+                    onValueChange = onDescriptionChange,
+                    placeholder = "Add notes…",
+                    minLines = 3
+                )
             }
         }
     }
 }
 
 @Composable
-private fun SectionLabel(text: String) {
-    Text(
-        text = text.uppercase(),
-        color = Color.White.copy(alpha = 0.87f),
-        fontSize = 11.sp,
-        fontWeight = FontWeight.Bold,
-        letterSpacing = 0.8.sp
-    )
+private fun InputField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String = "",
+    isBig: Boolean = false,
+    minLines: Int = 1
+) {
+    Column {
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = CMuted,
+            letterSpacing = 0.3.sp
+        )
+        Spacer(Modifier.height(6.dp))
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            textStyle = TextStyle(
+                fontSize = if (isBig) 16.sp else 14.sp,
+                fontWeight = if (isBig) FontWeight.SemiBold else FontWeight.Normal,
+                color = CInk
+            ),
+            cursorBrush = SolidColor(CBlue),
+            minLines = minLines,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(listOf(Color.White, Color.White)),
+                    RoundedCornerShape(12.dp)
+                )
+                .padding(14.dp),
+            decorationBox = { inner ->
+                if (value.isEmpty()) {
+                    Text(text = placeholder, color = CMuted2, fontSize = if (isBig) 16.sp else 14.sp)
+                }
+                inner()
+            }
+        )
+    }
 }
 
 @Composable
-private fun TimeSpinnerBlock(
+private fun InputFieldStatic(label: String, value: String) {
+    Column {
+        Text(
+            text = label,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            color = CMuted,
+            letterSpacing = 0.3.sp
+        )
+        Spacer(Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .background(
+                    Brush.verticalGradient(listOf(Color.White, Color.White)),
+                    RoundedCornerShape(10.dp)
+                )
+                .padding(horizontal = 10.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Text(text = value, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = CInk)
+        }
+    }
+}
+
+@Composable
+private fun TimeSpinner(
     hour: Int,
     minute: Int,
     onHourChange: (Int) -> Unit,
-    onMinuteChange: (Int) -> Unit,
-    hourDescription: String,
-    minuteDescription: String
+    onMinuteChange: (Int) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                Brush.linearGradient(
-                    listOf(Color(0xFF6366F1).copy(alpha = 0.08f), Color(0xFF8B5CF6).copy(alpha = 0.08f))
-                ),
+                Brush.verticalGradient(listOf(Color.White, Color.White)),
                 RoundedCornerShape(12.dp)
             )
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        SpinnerWheel(
+        SpinnerPicker(
             value = hour,
-            onIncrement = { onHourChange((hour + 1) % 24) },
-            onDecrement = { onHourChange((hour - 1 + 24) % 24) },
-            description = hourDescription
+            range = 0..23,
+            onInc = { onHourChange((hour + 1) % 24) },
+            onDec = { onHourChange((hour - 1 + 24) % 24) },
+            format = { "%02d".format(it) }
         )
         Text(
-            text = stringResource(R.string.time_separator),
-            color = Color.White,
+            text = ":",
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
+            color = CInk,
             modifier = Modifier.padding(horizontal = 4.dp)
         )
-        SpinnerWheel(
+        SpinnerPicker(
             value = minute,
-            onIncrement = { onMinuteChange((minute + 15) % 60) },
-            onDecrement = { onMinuteChange((minute - 15 + 60) % 60) },
-            description = minuteDescription
+            range = 0..59,
+            onInc = { onMinuteChange((minute + 15) % 60) },
+            onDec = { onMinuteChange((minute - 15 + 60) % 60) },
+            format = { "%02d".format(it) }
         )
     }
 }
 
 @Composable
-private fun SpinnerWheel(
+private fun SpinnerPicker(
     value: Int,
-    onIncrement: () -> Unit,
-    onDecrement: () -> Unit,
-    description: String
+    range: IntRange,
+    onInc: () -> Unit,
+    onDec: () -> Unit,
+    format: (Int) -> String
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        IconButton(onClick = onIncrement, modifier = Modifier.size(48.dp)) {
-            Icon(
-                imageVector = Icons.Filled.KeyboardArrowUp,
-                contentDescription = stringResource(R.string.cd_increase_value, description),
-                tint = Color.White.copy(alpha = 0.87f),
-                modifier = Modifier.size(16.dp)
-            )
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .background(CSurface, RoundedCornerShape(8.dp))
+                .clickable(onClick = onInc),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = "▲", fontSize = 10.sp, color = CBlue)
         }
+        Spacer(Modifier.height(4.dp))
         Text(
-            text = value.padded(),
-            color = Color.White,
-            fontSize = 18.sp,
+            text = format(value),
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
+            color = CInk
         )
-        IconButton(onClick = onDecrement, modifier = Modifier.size(48.dp)) {
-            Icon(
-                imageVector = Icons.Filled.KeyboardArrowDown,
-                contentDescription = stringResource(R.string.cd_decrease_value, description),
-                tint = Color.White.copy(alpha = 0.87f),
-                modifier = Modifier.size(16.dp)
-            )
+        Spacer(Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .background(CSurface, RoundedCornerShape(8.dp))
+                .clickable(onClick = onDec),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = "▼", fontSize = 10.sp, color = CBlue)
         }
     }
 }
+
+private val MONTH_NAMES_SHORT = listOf(
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+)

@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,37 +13,51 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringArrayResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.testingapplictionandriod.R
 import com.example.testingapplictionandriod.domain.model.CalendarEvent
 import com.example.testingapplictionandriod.domain.model.EventType
-import java.text.SimpleDateFormat
+import com.example.testingapplictionandriod.ui.components.CalenderlyFab
+import com.example.testingapplictionandriod.ui.components.UpgradeBanner
+import java.util.Calendar
 import java.util.Locale
+
+// Calenderly design tokens
+private val CBlue = Color(0xFF2564CF)
+private val CBlueDark = Color(0xFF1A3A80)
+private val CDangerRed = Color(0xFFDE3030)
+private val CInk = Color(0xFF1A1A2E)
+private val CInk3 = Color(0xFF3D3D5C)
+private val CMuted = Color(0xFF8B8BA7)
+private val CMuted2 = Color(0xFFC8C8D8)
+private val CHair = Color(0xFFE4E4ED)
+private val CSurface = Color(0xFFF7F7FB)
+private val CCoralColor = Color(0xFFE85C4A)
+private val CSuccessColor = Color(0xFF22C55E)
+private val CWarnColor = Color(0xFFF97316)
+
+private val MONTH_NAMES = listOf(
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+)
 
 @Composable
 fun CalendarScreen(
@@ -65,10 +78,13 @@ fun CalendarScreen(
     onAddEvent: () -> Unit,
     onDeleteEvent: (String) -> Unit,
     onShowEventDetail: (String) -> Unit,
-    onBackToCalendar: () -> Unit
+    onBackToCalendar: () -> Unit,
+    onShowDayView: () -> Unit = {},
+    onShowWeekView: () -> Unit = {},
+    onToggleNotifications: () -> Unit = {}
 ) {
-    when (val screen = uiState.currentScreen) {
-        CalendarNavScreen.Month -> CalendarMonthView(
+    when (uiState.currentScreen) {
+        is CalendarNavScreen.Month -> CalendarMonthScreen(
             uiState = uiState,
             onPreviousMonth = onPreviousMonth,
             onNextMonth = onNextMonth,
@@ -76,9 +92,11 @@ fun CalendarScreen(
             onDaySelected = onDaySelected,
             onShowCreateEvent = onShowCreateEvent,
             onShowEventDetail = onShowEventDetail,
-            onDeleteEvent = onDeleteEvent
+            onShowWeekView = onShowWeekView,
+            onShowDayView = onShowDayView,
+            onToggleNotifications = onToggleNotifications
         )
-        CalendarNavScreen.CreateEvent -> CreateEventScreen(
+        is CalendarNavScreen.CreateEvent -> CreateEventScreen(
             uiState = uiState,
             onDismiss = onDismissCreateEvent,
             onTitleChange = onNewEventTitleChange,
@@ -91,24 +109,32 @@ fun CalendarScreen(
             onSave = onAddEvent
         )
         is CalendarNavScreen.EventDetail -> {
-            val event = uiState.events.find { it.id == screen.eventId }
+            val eventId = (uiState.currentScreen as CalendarNavScreen.EventDetail).eventId
+            val event = uiState.events.find { it.id == eventId }
             if (event != null) {
                 EventDetailScreen(
                     event = event,
                     onBack = onBackToCalendar,
-                    onDelete = { onDeleteEvent(event.id) }
+                    onDelete = { onDeleteEvent(eventId) }
                 )
             } else {
-                LaunchedEffect(screen.eventId) { onBackToCalendar() }
+                onBackToCalendar()
             }
         }
+        is CalendarNavScreen.DayView -> DayViewScreen(
+            uiState = uiState,
+            onBack = onBackToCalendar,
+            onShowCreateEvent = onShowCreateEvent
+        )
+        is CalendarNavScreen.WeekView -> WeekViewScreen(
+            uiState = uiState,
+            onBack = onBackToCalendar
+        )
     }
 }
 
-// ── Month view ────────────────────────────────────────────────
-
 @Composable
-private fun CalendarMonthView(
+private fun CalendarMonthScreen(
     uiState: CalendarUiState,
     onPreviousMonth: () -> Unit,
     onNextMonth: () -> Unit,
@@ -116,392 +142,307 @@ private fun CalendarMonthView(
     onDaySelected: (Int) -> Unit,
     onShowCreateEvent: () -> Unit,
     onShowEventDetail: (String) -> Unit,
-    onDeleteEvent: (String) -> Unit
+    onShowWeekView: () -> Unit,
+    onShowDayView: () -> Unit,
+    onToggleNotifications: () -> Unit
 ) {
+    val today = remember { Calendar.getInstance() }
+    val todayYear = today.get(Calendar.YEAR)
+    val todayMonth = today.get(Calendar.MONTH) + 1
+    val todayDay = today.get(Calendar.DAY_OF_MONTH)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color(0xFF0F0C29), Color(0xFF302B63), Color(0xFF24243E))
-                )
-            )
+            .background(Brush.verticalGradient(listOf(Color.White, CSurface)))
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             CalendarTopBar(
-                year = uiState.displayedYear,
-                month = uiState.displayedMonth,
-                onPreviousMonth = onPreviousMonth,
-                onNextMonth = onNextMonth,
-                onGoToToday = onGoToToday
+                month = "${MONTH_NAMES[uiState.displayedMonth - 1]} ${uiState.displayedYear}",
+                onSearch = {},
+                onBell = onToggleNotifications,
+                onToggleView = onShowWeekView
             )
-
-            WeekdayHeaders()
-
-            CalendarGrid(
+            WeekdayHeader()
+            MonthGrid(
                 year = uiState.displayedYear,
                 month = uiState.displayedMonth,
                 selectedDay = uiState.selectedDay,
+                todayYear = todayYear,
+                todayMonth = todayMonth,
+                todayDay = todayDay,
                 events = uiState.events,
-                onDaySelected = onDaySelected
+                onDayTap = { day ->
+                    onDaySelected(day)
+                }
             )
-
-            EventsPanel(
-                modifier = Modifier.weight(1f),
-                year = uiState.displayedYear,
-                month = uiState.displayedMonth,
-                selectedDay = uiState.selectedDay,
-                events = uiState.events,
-                onShowEventDetail = onShowEventDetail,
-                onDeleteEvent = onDeleteEvent
-            )
+            Spacer(Modifier.weight(1f))
+            UpgradeBanner()
         }
 
-        // FAB — rounded square, gradient
-        Box(
+        CalenderlyFab(
+            onClick = onShowCreateEvent,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 20.dp)
-                .size(56.dp)
-                .background(
-                    Brush.linearGradient(listOf(Color(0xFF6366F1), Color(0xFF8B5CF6))),
-                    RoundedCornerShape(16.dp)
+                .padding(end = 20.dp, bottom = 144.dp)
+        )
+
+        if (uiState.selectedDay != null && uiState.selectedDay > 0) {
+            val dayEvents = uiState.events.filter { e ->
+                e.year == uiState.displayedYear &&
+                        e.month == uiState.displayedMonth &&
+                        e.day == uiState.selectedDay
+            }
+            if (dayEvents.isNotEmpty()) {
+                DayEventSheet(
+                    events = dayEvents,
+                    onEventTap = onShowEventDetail,
+                    onDismiss = { onDaySelected(0) }
                 )
-                .clip(RoundedCornerShape(16.dp))
-                .clickable(onClick = onShowCreateEvent),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Add,
-                contentDescription = stringResource(R.string.cd_add_event),
-                tint = Color.White,
-                modifier = Modifier.size(28.dp)
-            )
+            }
         }
     }
 }
-
-// ── Top bar ───────────────────────────────────────────────────
 
 @Composable
 private fun CalendarTopBar(
-    year: Int,
-    month: Int,
-    onPreviousMonth: () -> Unit,
-    onNextMonth: () -> Unit,
-    onGoToToday: () -> Unit
+    month: String,
+    onSearch: () -> Unit,
+    onBell: () -> Unit,
+    onToggleView: () -> Unit
 ) {
-    val cal = java.util.Calendar.getInstance().apply { set(year, month - 1, 1) }
-    val monthName = SimpleDateFormat(stringResource(R.string.date_format_month_only), Locale.getDefault()).format(cal.time)
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, end = 8.dp, top = 16.dp, bottom = 8.dp),
+            .height(56.dp)
+            .background(Brush.verticalGradient(listOf(Color.White, Color(0xFFFDFDFF))))
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = monthName,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 28.sp,
-                lineHeight = 30.sp
-            )
-            Text(
-                text = year.toString(),
-                color = Color.White.copy(alpha = 0.87f),
-                fontWeight = FontWeight.Medium,
-                fontSize = 14.sp
-            )
-        }
-
-        Box(
-            modifier = Modifier
-                .background(
-                    Brush.linearGradient(
-                        listOf(Color(0xFF6366F1).copy(alpha = 0.35f), Color(0xFF8B5CF6).copy(alpha = 0.35f))
-                    ),
-                    RoundedCornerShape(20.dp)
-                )
-                .clickable(onClick = onGoToToday)
-                .padding(horizontal = 14.dp, vertical = 8.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.btn_today),
-                color = Color.White,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-
-        IconButton(onClick = onPreviousMonth) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = stringResource(R.string.cd_previous_month),
-                tint = Color.White
-            )
-        }
-
-        IconButton(onClick = onNextMonth) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = stringResource(R.string.cd_next_month),
-                tint = Color.White
-            )
-        }
-    }
-}
-
-// ── Weekday headers ───────────────────────────────────────────
-
-@Composable
-private fun WeekdayHeaders() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-    ) {
-        stringArrayResource(R.array.calendar_day_headers).forEach { label ->
-            Text(
-                text = label,
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.Center,
-                color = Color.White.copy(alpha = 0.87f),
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp
-            )
-        }
-    }
-}
-
-// ── Calendar grid ─────────────────────────────────────────────
-
-@Composable
-private fun CalendarGrid(
-    year: Int,
-    month: Int,
-    selectedDay: Int?,
-    events: List<CalendarEvent>,
-    onDaySelected: (Int) -> Unit
-) {
-    val today = java.util.Calendar.getInstance()
-    val todayYear = today.get(java.util.Calendar.YEAR)
-    val todayMonth = today.get(java.util.Calendar.MONTH) + 1
-    val todayDay = today.get(java.util.Calendar.DAY_OF_MONTH)
-
-    val cal = java.util.Calendar.getInstance().apply { set(year, month - 1, 1) }
-    val daysInMonth = cal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)
-    // Monday-first offset: Mon=0, Tue=1, …, Sun=6
-    val firstDayOfWeek = (cal.get(java.util.Calendar.DAY_OF_WEEK) - java.util.Calendar.MONDAY + 7) % 7
-
-    val cells = List(firstDayOfWeek) { 0 } + (1..daysInMonth).toList()
-    val remainder = cells.size % 7
-    val paddedCells = if (remainder == 0) cells else cells + List(7 - remainder) { 0 }
-
-    Column(modifier = Modifier.padding(horizontal = 6.dp)) {
-        paddedCells.chunked(7).forEach { week ->
-            Row(modifier = Modifier.fillMaxWidth()) {
-                week.forEach { day ->
-                    CalendarDayCell(
-                        day = day,
-                        isToday = day != 0 && year == todayYear && month == todayMonth && day == todayDay,
-                        isSelected = day != 0 && day == selectedDay,
-                        dayEvents = if (day != 0) events.filter {
-                            it.year == year && it.month == month && it.day == day
-                        } else emptyList(),
-                        onClick = { if (day != 0) onDaySelected(day) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun CalendarDayCell(
-    day: Int,
-    isToday: Boolean,
-    isSelected: Boolean,
-    dayEvents: List<CalendarEvent>,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .height(72.dp)
-            .padding(2.dp),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        if (day != 0) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .then(
-                        when {
-                            isSelected -> Modifier.background(
-                                Brush.linearGradient(listOf(Color(0xFF6366F1), Color(0xFF8B5CF6))),
-                                RoundedCornerShape(14.dp)
-                            )
-                            isToday -> Modifier.background(
-                                Brush.linearGradient(listOf(Color(0xFF06B6D4), Color(0xFF3B82F6))),
-                                RoundedCornerShape(14.dp)
-                            )
-                            else -> Modifier.background(
-                                Brush.linearGradient(
-                                    listOf(Color(0xFF6366F1).copy(alpha = 0.04f), Color(0xFF8B5CF6).copy(alpha = 0.04f))
-                                ),
-                                RoundedCornerShape(14.dp)
-                            )
-                        }
-                    )
-                    .clip(RoundedCornerShape(14.dp))
-                    .clickable(onClick = onClick)
-                    .padding(top = 8.dp, start = 4.dp, end = 4.dp, bottom = 4.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = day.toString(),
-                    color = if (isSelected || isToday) Color.White else Color.White.copy(alpha = 0.87f),
-                    fontSize = 14.sp,
-                    fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Medium,
-                    textAlign = TextAlign.Center
-                )
-
-                if (dayEvents.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 3.dp),
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        dayEvents.take(3).forEach { event ->
-                            val (sc, ec) = event.type.gradientColors()
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(4.dp)
-                                    .background(
-                                        if (isSelected || isToday)
-                                            Brush.linearGradient(
-                                                listOf(Color.White.copy(alpha = 0.75f), Color.White)
-                                            )
-                                        else
-                                            Brush.linearGradient(listOf(sc, ec)),
-                                        RoundedCornerShape(2.dp)
-                                    )
-                            )
-                        }
-                        if (dayEvents.size > 3) {
-                            Text(
-                                text = stringResource(R.string.events_overflow_count, dayEvents.size - 3),
-                                color = if (isSelected || isToday) Color.White
-                                        else Color.White.copy(alpha = 0.87f),
-                                fontSize = 8.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ── Events panel (bottom sheet style) ────────────────────────
-
-@Composable
-private fun EventsPanel(
-    modifier: Modifier = Modifier,
-    year: Int,
-    month: Int,
-    selectedDay: Int?,
-    events: List<CalendarEvent>,
-    onShowEventDetail: (String) -> Unit,
-    onDeleteEvent: (String) -> Unit
-) {
-    val selectedEvents = if (selectedDay != null) {
-        events.filter { it.year == year && it.month == month && it.day == selectedDay }
-            .sortedWith(compareBy({ it.startHour }, { it.startMinute }))
-    } else emptyList()
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(
-                Brush.linearGradient(listOf(Color(0xFF1A1741), Color(0xFF2D2A5E))),
-                RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-            )
-    ) {
-        // Drag handle
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 10.dp, bottom = 6.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(36.dp)
-                    .height(4.dp)
-                    .background(
-                        Brush.linearGradient(
-                            listOf(Color.White.copy(alpha = 0.15f), Color.White.copy(alpha = 0.28f))
-                        ),
-                        RoundedCornerShape(2.dp)
-                    )
-            )
-        }
-
-        // Day header row
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 6.dp),
+                .weight(1f)
+                .clickable(onClick = onToggleView),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = if (selectedDay != null) {
-                    val cal = java.util.Calendar.getInstance().apply { set(year, month - 1, selectedDay) }
-                    SimpleDateFormat(stringResource(R.string.date_format_day_month), Locale.getDefault()).format(cal.time)
-                } else {
-                    stringResource(R.string.events_title_no_selection)
-                },
-                color = Color.White,
+                text = month,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                fontSize = 17.sp,
-                modifier = Modifier.weight(1f)
+                color = CInk,
+                letterSpacing = (-0.3).sp
             )
-            if (selectedDay != null && selectedEvents.isNotEmpty()) {
+            Spacer(Modifier.width(4.dp))
+            Icon(
+                imageVector = Icons.Filled.ChevronRight,
+                contentDescription = "Toggle calendar view",
+                tint = CMuted,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+        Row(
+            modifier = Modifier
+                .background(CSurface, RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(8.dp))
+                .clickable(onClick = onToggleView)
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.GridView,
+                contentDescription = "Switch view",
+                tint = CInk3,
+                modifier = Modifier.size(16.dp)
+            )
+            Text(text = "Month", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = CInk)
+        }
+        Spacer(Modifier.width(4.dp))
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .clickable(onClick = onSearch),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Search,
+                contentDescription = "Search events",
+                tint = CInk,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .clickable(onClick = onBell),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Notifications,
+                contentDescription = "Notifications",
+                tint = CInk,
+                modifier = Modifier.size(22.dp)
+            )
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .background(CDangerRed, CircleShape)
+                    .align(Alignment.TopEnd)
+            )
+        }
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(Brush.verticalGradient(listOf(CHair, CHair)))
+    )
+}
+
+@Composable
+private fun WeekdayHeader() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(32.dp)
+            .background(Brush.verticalGradient(listOf(Color.White, Color.White)))
+    ) {
+        listOf("S", "M", "T", "W", "T", "F", "S").forEachIndexed { i, day ->
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(
-                    text = pluralStringResource(R.plurals.events_count, selectedEvents.size, selectedEvents.size),
-                    color = Color.White.copy(alpha = 0.87f),
-                    fontSize = 13.sp
+                    text = day,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (i == 0 || i == 6) CMuted else CInk3,
+                    letterSpacing = 0.3.sp
                 )
             }
         }
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(Brush.verticalGradient(listOf(CHair, CHair)))
+    )
+}
 
-        Spacer(modifier = Modifier.height(4.dp))
+@Composable
+private fun MonthGrid(
+    year: Int,
+    month: Int,
+    selectedDay: Int?,
+    todayYear: Int,
+    todayMonth: Int,
+    todayDay: Int,
+    events: List<CalendarEvent>,
+    onDayTap: (Int) -> Unit
+) {
+    val cells = remember(year, month) { buildMonthCells(year, month) }
+    val eventsThisMonth = remember(events, year, month) {
+        events.filter { it.year == year && it.month == month }
+    }
 
-        when {
-            selectedDay == null -> PanelEmptyState(stringResource(R.string.events_tap_to_select))
-            selectedEvents.isEmpty() -> PanelEmptyState(stringResource(R.string.events_no_events))
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(
-                        start = 16.dp, end = 16.dp, bottom = 88.dp
-                    )
-                ) {
-                    items(selectedEvents, key = { it.id }) { event ->
-                        EventPanelCard(
-                            event = event,
-                            onTap = { onShowEventDetail(event.id) },
-                            onDelete = { onDeleteEvent(event.id) }
+    Column {
+        cells.chunked(7).forEach { week ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(Brush.verticalGradient(listOf(CHair, CHair)))
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(88.dp)
+            ) {
+                week.forEachIndexed { ci, cell ->
+                    val isToday = !cell.overflow &&
+                            year == todayYear && month == todayMonth && cell.day == todayDay
+                    val dayEvents = if (!cell.overflow) eventsThisMonth.filter { it.day == cell.day } else emptyList()
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxSize()
+                            .background(Brush.verticalGradient(listOf(Color.White, Color.White)))
+                            .clickable(enabled = !cell.overflow) { onDayTap(cell.day) }
+                            .padding(start = 6.dp, end = 4.dp, top = 6.dp, bottom = 4.dp)
+                    ) {
+                        if (isToday) {
+                            Box(
+                                modifier = Modifier
+                                    .size(26.dp)
+                                    .background(Brush.linearGradient(listOf(CBlue, CBlueDark)), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = cell.day.toString(),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+                        } else {
+                            Text(
+                                text = cell.day.toString(),
+                                fontSize = 12.sp,
+                                fontWeight = if (cell.overflow) FontWeight.Normal else FontWeight.Medium,
+                                color = when {
+                                    cell.overflow -> CMuted2
+                                    selectedDay == cell.day -> CBlue
+                                    else -> CInk
+                                }
+                            )
+                        }
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .fillMaxWidth()
+                                .padding(top = 28.dp),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            dayEvents.take(2).forEach { event ->
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(14.dp)
+                                        .background(eventColor(event.type), RoundedCornerShape(3.dp))
+                                        .padding(horizontal = 4.dp),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    Text(
+                                        text = event.title,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color.White,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                            if (dayEvents.size > 2) {
+                                Text(
+                                    text = "+${dayEvents.size - 2} more",
+                                    fontSize = 9.sp,
+                                    color = CMuted
+                                )
+                            }
+                        }
+                    }
+                    if (ci < 6) {
+                        Box(
+                            modifier = Modifier
+                                .width(1.dp)
+                                .fillMaxSize()
+                                .background(Brush.verticalGradient(listOf(CHair, CHair)))
                         )
                     }
                 }
@@ -511,136 +452,130 @@ private fun EventsPanel(
 }
 
 @Composable
-private fun PanelEmptyState(message: String) {
+private fun DayEventSheet(
+    events: List<CalendarEvent>,
+    onEventTap: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .background(
-                Brush.linearGradient(
-                    listOf(Color(0xFF6366F1).copy(alpha = 0.08f), Color(0xFF8B5CF6).copy(alpha = 0.08f))
-                ),
-                RoundedCornerShape(12.dp)
-            )
-            .padding(20.dp),
-        contentAlignment = Alignment.Center
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(Color(0x731A1A2E), Color(0x731A1A2E))))
+            .clickable(onClick = onDismiss)
     ) {
-        Text(
-            text = message,
-            color = Color.White.copy(alpha = 0.87f),
-            fontSize = 14.sp,
-            textAlign = TextAlign.Center
-        )
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(listOf(Color.White, CSurface)),
+                    RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                )
+                .padding(horizontal = 20.dp)
+                .clickable(enabled = false) {}
+        ) {
+            Spacer(Modifier.height(12.dp))
+            Box(
+                modifier = Modifier
+                    .width(36.dp)
+                    .height(4.dp)
+                    .background(Brush.linearGradient(listOf(CHair, CHair)), RoundedCornerShape(2.dp))
+                    .align(Alignment.CenterHorizontally)
+            )
+            Spacer(Modifier.height(20.dp))
+            Text(
+                text = "Events",
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+                color = CInk
+            )
+            Spacer(Modifier.height(12.dp))
+            events.forEach { event ->
+                EventSheetRow(event = event, onTap = { onEventTap(event.id) })
+                Spacer(Modifier.height(8.dp))
+            }
+            Spacer(Modifier.height(24.dp))
+        }
     }
 }
 
 @Composable
-private fun EventPanelCard(
-    event: CalendarEvent,
-    onTap: () -> Unit,
-    onDelete: () -> Unit
-) {
-    val (startColor, endColor) = event.type.gradientColors()
-
+private fun EventSheetRow(event: CalendarEvent, onTap: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                Brush.linearGradient(
-                    listOf(startColor.copy(alpha = 0.12f), endColor.copy(alpha = 0.12f))
-                ),
-                RoundedCornerShape(14.dp)
-            )
-            .clip(RoundedCornerShape(14.dp))
+            .background(Brush.linearGradient(listOf(CSurface, CSurface)), RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onTap)
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .width(5.dp)
-                .height(46.dp)
-                .background(
-                    Brush.verticalGradient(listOf(startColor, endColor)),
-                    RoundedCornerShape(3.dp)
-                )
+                .width(4.dp)
+                .height(40.dp)
+                .background(eventColor(event.type), RoundedCornerShape(2.dp))
         )
-
-        Spacer(modifier = Modifier.width(12.dp))
-
+        Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
+            Text(text = event.title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = CInk)
             Text(
-                text = event.title,
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 15.sp
-            )
-            Spacer(modifier = Modifier.height(3.dp))
-            Text(
-                text = stringResource(
-                    R.string.event_time_range,
-                    event.startHour.padded(),
-                    event.startMinute.padded(),
-                    event.endHour.padded(),
-                    event.endMinute.padded()
-                ),
-                color = Color.White.copy(alpha = 0.87f),
-                fontSize = 12.sp
-            )
-            if (event.description.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = event.description,
-                    color = Color.White.copy(alpha = 0.87f),
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Box(
-            modifier = Modifier
-                .background(
-                    Brush.linearGradient(listOf(startColor, endColor)),
-                    RoundedCornerShape(8.dp)
-                )
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
-            Text(
-                text = stringResource(event.type.labelRes),
-                color = Color.White,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.SemiBold
+                text = "${formatTime(event.startHour, event.startMinute)} – ${formatTime(event.endHour, event.endMinute)}",
+                fontSize = 12.sp,
+                color = CMuted
             )
         }
-
-        Spacer(modifier = Modifier.width(4.dp))
-
-        IconButton(
-            onClick = onDelete,
-            modifier = Modifier.size(48.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Delete,
-                contentDescription = stringResource(R.string.cd_delete_event),
-                tint = Color.White,
-                modifier = Modifier.size(18.dp)
-            )
-        }
+        Icon(
+            imageVector = Icons.Filled.ChevronRight,
+            contentDescription = "View event details",
+            tint = CMuted2,
+            modifier = Modifier.size(16.dp)
+        )
     }
 }
 
-// ── Shared helpers ─────────────────────────────────────────────
+private data class DayCell(val day: Int, val overflow: Boolean)
 
-internal fun Int.padded(): String = toString().padStart(2, '0')
+private fun buildMonthCells(year: Int, month: Int): List<DayCell> {
+    val cal = Calendar.getInstance().apply {
+        set(Calendar.YEAR, year)
+        set(Calendar.MONTH, month - 1)
+        set(Calendar.DAY_OF_MONTH, 1)
+    }
+    val firstDayOfWeek = cal.get(Calendar.DAY_OF_WEEK) - 1
+    val daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
 
-internal fun EventType.gradientColors(): Pair<Color, Color> = when (this) {
-    EventType.WORK -> Color(0xFF6366F1) to Color(0xFF8B5CF6)
-    EventType.PERSONAL -> Color(0xFF06B6D4) to Color(0xFF3B82F6)
-    EventType.HEALTH -> Color(0xFF10B981) to Color(0xFF059669)
-    EventType.SOCIAL -> Color(0xFFF59E0B) to Color(0xFFD97706)
-    EventType.OTHER -> Color(0xFF94A3B8) to Color(0xFF64748B)
+    val prevMonthCal = Calendar.getInstance().apply {
+        set(Calendar.YEAR, year)
+        set(Calendar.MONTH, month - 1)
+        add(Calendar.MONTH, -1)
+    }
+    val daysInPrevMonth = prevMonthCal.getActualMaximum(Calendar.DAY_OF_MONTH)
+
+    val cells = mutableListOf<DayCell>()
+    for (i in firstDayOfWeek downTo 1) {
+        cells.add(DayCell(daysInPrevMonth - i + 1, overflow = true))
+    }
+    for (d in 1..daysInMonth) {
+        cells.add(DayCell(d, overflow = false))
+    }
+    var next = 1
+    while (cells.size < 35) {
+        cells.add(DayCell(next++, overflow = true))
+    }
+    return cells
+}
+
+internal fun eventColor(type: EventType): Color = when (type) {
+    EventType.WORK -> CBlue
+    EventType.PERSONAL -> CCoralColor
+    EventType.HEALTH -> CSuccessColor
+    EventType.SOCIAL -> CWarnColor
+    EventType.OTHER -> CMuted
+}
+
+internal fun formatTime(hour: Int, minute: Int): String {
+    val amPm = if (hour < 12) "AM" else "PM"
+    val h = if (hour == 0) 12 else if (hour > 12) hour - 12 else hour
+    return String.format(Locale.US, "%d:%02d %s", h, minute, amPm)
 }

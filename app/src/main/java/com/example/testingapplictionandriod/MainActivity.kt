@@ -6,8 +6,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.testingapplictionandriod.ui.calendar.CalendarScreen
-import com.example.testingapplictionandriod.ui.calendar.CalendarViewModel
+import com.example.testingapplictionandriod.ui.app.AppScreen
+import com.example.testingapplictionandriod.ui.app.AppViewModel
+import com.example.testingapplictionandriod.ui.main.MainScreen
+import com.example.testingapplictionandriod.ui.onboarding.OnboardingScreen
+import com.example.testingapplictionandriod.ui.splash.SplashScreen
 import com.example.testingapplictionandriod.ui.theme.TestingapplictionandriodTheme
 
 class MainActivity : ComponentActivity() {
@@ -16,28 +19,26 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TestingapplictionandriodTheme {
-                val viewModel: CalendarViewModel = viewModel()
-                val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-                CalendarScreen(
-                    uiState = uiState.value,
-                    onPreviousMonth = viewModel::onPreviousMonth,
-                    onNextMonth = viewModel::onNextMonth,
-                    onGoToToday = viewModel::onGoToToday,
-                    onDaySelected = viewModel::onDaySelected,
-                    onShowCreateEvent = viewModel::onShowCreateEvent,
-                    onDismissCreateEvent = viewModel::onDismissCreateEvent,
-                    onNewEventTitleChange = viewModel::onNewEventTitleChange,
-                    onNewEventDescriptionChange = viewModel::onNewEventDescriptionChange,
-                    onNewEventTypeChange = viewModel::onNewEventTypeChange,
-                    onNewEventStartHourChange = viewModel::onNewEventStartHourChange,
-                    onNewEventStartMinuteChange = viewModel::onNewEventStartMinuteChange,
-                    onNewEventEndHourChange = viewModel::onNewEventEndHourChange,
-                    onNewEventEndMinuteChange = viewModel::onNewEventEndMinuteChange,
-                    onAddEvent = viewModel::onAddEvent,
-                    onDeleteEvent = viewModel::onDeleteEvent,
-                    onShowEventDetail = viewModel::onShowEventDetail,
-                    onBackToCalendar = viewModel::onBackToCalendar
-                )
+                val appViewModel: AppViewModel = viewModel()
+                val appState = appViewModel.uiState.collectAsStateWithLifecycle()
+
+                when (val screen = appState.value.currentScreen) {
+                    is AppScreen.Splash -> {
+                        SplashScreen(
+                            onSplashDone = { appViewModel.onSplashComplete() }
+                        )
+                    }
+                    is AppScreen.Onboarding -> {
+                        OnboardingScreen(
+                            step = appState.value.onboardingStep,
+                            onNext = appViewModel::onOnboardingNext,
+                            onGetStarted = { appViewModel.onOnboardingComplete() }
+                        )
+                    }
+                    is AppScreen.Main -> {
+                        MainScreen(appViewModel = appViewModel)
+                    }
+                }
             }
         }
     }

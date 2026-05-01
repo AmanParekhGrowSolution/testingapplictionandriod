@@ -81,6 +81,18 @@ class CalendarViewModel @Inject constructor() : ViewModel() {
         _uiState.update { it.copy(currentScreen = CalendarNavScreen.Month) }
     }
 
+    fun onShowDayView() {
+        _uiState.update { it.copy(currentScreen = CalendarNavScreen.DayView) }
+    }
+
+    fun onShowWeekView() {
+        _uiState.update { it.copy(currentScreen = CalendarNavScreen.WeekView) }
+    }
+
+    fun onToggleNotifications() {
+        _uiState.update { it.copy(showNotifications = !it.showNotifications) }
+    }
+
     fun onNewEventTitleChange(title: String) {
         _uiState.update { it.copy(newEventTitle = title) }
     }

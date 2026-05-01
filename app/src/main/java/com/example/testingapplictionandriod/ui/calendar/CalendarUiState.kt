@@ -5,6 +5,8 @@ import com.example.testingapplictionandriod.domain.model.EventType
 
 sealed class CalendarNavScreen {
     object Month : CalendarNavScreen()
+    object DayView : CalendarNavScreen()
+    object WeekView : CalendarNavScreen()
     object CreateEvent : CalendarNavScreen()
     data class EventDetail(val eventId: String) : CalendarNavScreen()
 }
@@ -22,5 +24,6 @@ data class CalendarUiState(
     val newEventStartHour: Int = 9,
     val newEventStartMinute: Int = 0,
     val newEventEndHour: Int = 10,
-    val newEventEndMinute: Int = 0
+    val newEventEndMinute: Int = 0,
+    val showNotifications: Boolean = false
 )
