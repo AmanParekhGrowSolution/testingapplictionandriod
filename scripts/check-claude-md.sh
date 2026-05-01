@@ -8,6 +8,10 @@
 #
 # Exit codes: 0 = clean, 1 = violations found
 # Output format: <file>:<line> [<ID>] <description> — `<snippet>`
+#
+# Rules: G1 (flat bg, single + multi-line), G2 (containerColor), G3 (text alpha),
+#        G4 (icon tint), G5 (color/tint param threaded without Color.White),
+#        A1 (touch target < 48dp), S2 (separator), ARCH1 (ViewModel view.*), ARCH2 (collectAsState)
 
 set -euo pipefail
 
@@ -116,6 +120,20 @@ scan_file() {
       report "$file" "$lineno" "G4" "icon tint is a non-white solid colour — must be tint = Color.White" "$snippet"
     fi
 
+    # G5 — color/tint parameter threaded without a Color.White literal at call site
+    # Catches `Text(... color = someVariable)` / `Icon(... tint = someVariable)` patterns
+    # where a non-literal Color variable is passed in (e.g. `color = color`, `tint = iconTint`).
+    # Variables start with lowercase; Color literals start with uppercase Color.
+    # Informational — output says "verify caller value" rather than hard-blocking.
+    if echo "$line_text" | grep -qP '\b(Text|Icon)\b'; then
+      if echo "$line_text" | grep -qP '\b(color|tint)\s*=\s*[a-z][a-zA-Z0-9_.]*\b'; then
+        if ! echo "$line_text" | grep -qP '\b(color|tint)\s*=\s*Color\.'; then
+          snippet=$(echo "$line_text" | sed 's/^[[:space:]]*//')
+          report "$file" "$lineno" "G5" "color/tint parameter threaded without Color.White literal — verify caller value or hardcode Color.White" "$snippet"
+        fi
+      fi
+    fi
+
     # A1 — Touch target < 48 dp on IconButton
     if echo "$line_text" | grep -qP 'IconButton\('; then
       if echo "$line_text" | grep -qP 'Modifier\.size\(([0-3]?[0-9]|4[0-7])\.dp\)'; then
@@ -150,10 +168,47 @@ scan_file() {
   done < "$file"
 }
 
+# ── G1 multi-line scanner ────────────────────────────────────────────────────
+# The line-by-line scan_file only catches .background(Color...) on one line.
+# This function catches the split form:
+#   .background(
+#       Color(0xFF...)     <- Color on a continuation line
+#   )
+# It scans up to 6 continuation lines after each .background( opener.
+scan_file_multiline() {
+  local file="$1"
+  local start_lines
+  start_lines=$(awk '
+    /\.background\(/ && !/Brush\./ {
+      start = NR
+      buf = $0
+      for (i = 1; i <= 6; i++) {
+        if ((getline nextline) <= 0) break
+        if (nextline ~ /Brush\./) { buf = ""; break }
+        buf = buf "\n" nextline
+        if (nextline ~ /^[[:space:]]*\)/) {
+          if (buf ~ /Color[\.\(]/ && buf !~ /Brush\./) print start
+          buf = ""
+          break
+        }
+      }
+    }
+  ' "$file")
+
+  while IFS= read -r start_line; do
+    [[ -z "$start_line" ]] && continue
+    is_in_diff "$file" "$start_line" || continue
+    local snippet
+    snippet=$(sed -n "${start_line}p" "$file" | sed 's/^[[:space:]]*//')
+    report "$file" "$start_line" "G1" "multi-line flat .background(...) — use Brush.linearGradient/verticalGradient" "$snippet"
+  done <<< "$start_lines"
+}
+
 # ── Run across all target files ───────────────────────────────────────────────
 for f in "${TARGET_FILES[@]}"; do
   [[ -f "$f" ]] || continue
   scan_file "$f"
+  scan_file_multiline "$f"
 done
 
 # ── Summary ───────────────────────────────────────────────────────────────────

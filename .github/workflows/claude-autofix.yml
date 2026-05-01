@@ -4,6 +4,9 @@ on:
   pull_request_target:
     types: [labeled]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
   contents: write
   pull-requests: write
@@ -100,6 +103,7 @@ jobs:
             --effort high
             --max-turns 80
             --permission-mode bypassPermissions
+            --debug-file ${{ runner.temp }}/claude-debug.json
 
           prompt: |
             You are auto-fixing CLAUDE.md violations on PR #${{ github.event.pull_request.number }}.
@@ -139,6 +143,25 @@ jobs:
                  --jq '[.[] | {path: .path, line: .line, body: .body}]'
                ```
 
+            3a. **Plan the rule-class sweep — POST BEFORE EDITING.** After reading the review comments but before any Edit/Write tool call, post a comment:
+               ```
+               gh pr comment ${{ github.event.pull_request.number }} --body "..."
+               ```
+               The comment body must contain:
+               ```
+               ## Autofix plan (attempt N)
+               **Rule classes flagged:** <e.g. G1 flat background, G3 alpha 0.5f, S2 ":">
+               **Every occurrence in changed files (by rule class):**
+                 - G1: <grep '\.background(Color' result -> file:line list>
+                 - G3: <grep result>
+                 - <one line per rule class>
+               **Every UI surface in changed files:** <enumerate every Box / Card / Surface / Row / Column including nested decorative surfaces — drag handles, pills, badges, dividers, chip backgrounds, tab indicators. These are the surfaces that get introduced during fixes and then themselves violate G1.>
+               **Color/tint parameters threaded through changed composables:** <list>
+               **NEW sub-components I plan to introduce as part of the fix:** <list, or "none" — for each new sub-component, declare its background up front>
+               **Test files I expect to update:** <list>
+               ```
+               Vague plans ("fix all G1 violations") are not acceptable — enumerate every site by file:line.
+
             4. **Fix every blocking violation using a rule-class sweep — not just the flagged lines.**
 
                For each blocking violation in the review comment:
@@ -148,9 +171,24 @@ jobs:
                  rule class. Fix ALL matches, not just the specific lines the reviewer mentioned.
                  The reviewer samples; you must sweep every instance.
 
+               **Scope-creep guard:** When fixing a violation, do NOT wrap the violating element in a
+               new Box/Card/Surface unless the parent layout genuinely requires it. Most G1/G3/G4
+               fixes are in-place edits to the existing modifier chain. Every new sub-component you
+               introduce is a fresh surface that can itself violate G1 — PR #28 ran 7 attempts
+               chasing exactly this pattern. If you must introduce a new sub-component, declare it
+               in the plan comment (step 3a) AND apply `Brush.*` to it in the same edit.
+
                Stay within scope — do NOT touch files that were not changed in this PR.
                Do NOT edit `.github/`, `gradle/`, `gradle.properties`, `settings.gradle*`,
                or top-level `build.gradle*`.
+
+            4a. **Self-critique against plan.** Run `git diff origin/main` and walk through every
+               enumerated item in the plan comment:
+               - For each NEW Box/Card/Surface introduced by your fix, verify it uses `Brush.*` and
+                 was declared in the plan; if not, update the plan comment AND fix the surface.
+               - For any `color`/`tint` parameter in the diff that was not listed in the plan,
+                 trace the value to the call site and verify it resolves to `Color.White`.
+               Only proceed to step 5 once the diff matches the plan.
 
             5. After fixing, run the deterministic compliance script and resolve every line it reports:
                ```
@@ -186,7 +224,17 @@ jobs:
             another rule), do NOT push a no-op commit — instead post a comment
             explaining why and exit. The attempt cap will then guard against loops.
 
-      # ── 6. Deterministic compliance gate (runs after Claude's edits) ────────
+      # ── 6. Upload Claude debug log ────────────────────────────────────────────
+      - name: Upload Claude debug log
+        if: steps.attempt_check.outputs.max_reached == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-debug-autofix-pr${{ github.event.pull_request.number }}-attempt${{ steps.attempt_check.outputs.attempt }}-run${{ github.run_id }}
+          path: ${{ runner.temp }}/claude-debug.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # ── 7. Deterministic compliance gate (runs after Claude's edits) ────────
       # If the LLM only fixed the flagged lines and missed other instances of
       # the same rule, this step catches them before a push happens.
       - name: Verify CLAUDE.md compliance (deterministic)
