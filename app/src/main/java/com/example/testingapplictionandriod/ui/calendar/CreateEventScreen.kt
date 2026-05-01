@@ -170,10 +170,10 @@ fun CreateEventScreen(
                     val cal = java.util.Calendar.getInstance().apply {
                         set(uiState.displayedYear, uiState.displayedMonth - 1, day)
                     }
-                    SimpleDateFormat("EEE, MMM d, yyyy", Locale.getDefault()).format(cal.time)
+                    SimpleDateFormat(stringResource(R.string.date_format_full), Locale.getDefault()).format(cal.time)
                 } ?: run {
                     val cal = java.util.Calendar.getInstance()
-                    SimpleDateFormat("EEE, MMM d, yyyy", Locale.getDefault()).format(cal.time)
+                    SimpleDateFormat(stringResource(R.string.date_format_full), Locale.getDefault()).format(cal.time)
                 }
 
                 Row(
@@ -296,7 +296,7 @@ fun CreateEventScreen(
                             if (uiState.newEventDescription.isEmpty()) {
                                 Text(
                                     text = stringResource(R.string.hint_add_notes),
-                                    color = Color.White.copy(alpha = 0.28f),
+                                    color = Color.White.copy(alpha = 0.87f),
                                     fontSize = 15.sp
                                 )
                             }
@@ -375,7 +375,7 @@ private fun SpinnerWheel(
     description: String
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        IconButton(onClick = onIncrement, modifier = Modifier.size(40.dp)) {
+        IconButton(onClick = onIncrement, modifier = Modifier.size(48.dp)) {
             Icon(
                 imageVector = Icons.Filled.KeyboardArrowUp,
                 contentDescription = stringResource(R.string.cd_increase_value, description),
@@ -390,7 +390,7 @@ private fun SpinnerWheel(
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
-        IconButton(onClick = onDecrement, modifier = Modifier.size(40.dp)) {
+        IconButton(onClick = onDecrement, modifier = Modifier.size(48.dp)) {
             Icon(
                 imageVector = Icons.Filled.KeyboardArrowDown,
                 contentDescription = stringResource(R.string.cd_decrease_value, description),

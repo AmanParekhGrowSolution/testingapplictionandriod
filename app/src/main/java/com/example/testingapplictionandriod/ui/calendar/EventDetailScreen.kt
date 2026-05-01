@@ -127,7 +127,7 @@ fun EventDetailScreen(
                             set(event.year, event.month - 1, event.day)
                         }
                         val dateStr = SimpleDateFormat(
-                            "EEEE, MMM d", Locale.getDefault()
+                            stringResource(R.string.date_format_day_month), Locale.getDefault()
                         ).format(cal.time)
                         Text(
                             text = stringResource(
@@ -210,7 +210,7 @@ fun EventDetailScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "${event.startHour.padded()}:${event.startMinute.padded()}",
+                                text = stringResource(R.string.time_hhmm, event.startHour.padded(), event.startMinute.padded()),
                                 color = Color.White,
                                 fontSize = 26.sp,
                                 fontWeight = FontWeight.Bold
@@ -218,18 +218,18 @@ fun EventDetailScreen(
                         }
                         Text(
                             text = stringResource(R.string.cd_time_arrow),
-                            color = Color.White.copy(alpha = 0.45f),
+                            color = Color.White.copy(alpha = 0.87f),
                             fontSize = 20.sp
                         )
                         Column {
                             Text(
                                 text = stringResource(R.string.dialog_end_time).uppercase(),
-                                color = Color.White.copy(alpha = 0.45f),
+                                color = Color.White.copy(alpha = 0.87f),
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "${event.endHour.padded()}:${event.endMinute.padded()}",
+                                text = stringResource(R.string.time_hhmm, event.endHour.padded(), event.endMinute.padded()),
                                 color = Color.White,
                                 fontSize = 26.sp,
                                 fontWeight = FontWeight.Bold

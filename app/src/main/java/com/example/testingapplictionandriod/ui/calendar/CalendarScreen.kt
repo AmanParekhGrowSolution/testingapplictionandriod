@@ -397,7 +397,7 @@ private fun CalendarDayCell(
                         }
                         if (dayEvents.size > 3) {
                             Text(
-                                text = "+${dayEvents.size - 3}",
+                                text = stringResource(R.string.events_overflow_count, dayEvents.size - 3),
                                 color = if (isSelected || isToday) Color.White.copy(alpha = 0.80f)
                                         else Color.White.copy(alpha = 0.50f),
                                 fontSize = 8.sp,
