@@ -85,6 +85,7 @@ jobs:
             --effort high
             --max-turns 100
             --permission-mode bypassPermissions
+            --debug-file ${{ runner.temp }}/claude-debug.json
 
           prompt: |
             You are an autonomous Android coding agent triggered by GitHub Issue #${{ github.event.issue.number }}.
@@ -187,7 +188,17 @@ jobs:
 
             If the scope is unclear, comment on the issue asking for clarification — do NOT create a PR with guesswork.
 
-      # ── 5. Deterministic CLAUDE.md compliance gate ───────────────────────────
+      # ── 5. Upload Claude debug log ────────────────────────────────────────────
+      - name: Upload Claude debug log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-debug-agent-${{ github.event.issue.number }}-run${{ github.run_id }}
+          path: ${{ runner.temp }}/claude-debug.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # ── 6. Deterministic CLAUDE.md compliance gate ───────────────────────────
       # Catches gradient/alpha/tint/separator/architecture violations that the
       # LLM may have missed. Fails the workflow before the PR is opened, so the
       # agent must address every match rather than pushing a violating branch.

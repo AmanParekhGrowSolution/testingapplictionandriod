@@ -100,6 +100,7 @@ jobs:
             --effort high
             --max-turns 80
             --permission-mode bypassPermissions
+            --debug-file ${{ runner.temp }}/claude-debug.json
 
           prompt: |
             You are auto-fixing CLAUDE.md violations on PR #${{ github.event.pull_request.number }}.
@@ -220,7 +221,17 @@ jobs:
             another rule), do NOT push a no-op commit — instead post a comment
             explaining why and exit. The attempt cap will then guard against loops.
 
-      # ── 6. Deterministic compliance gate (runs after Claude's edits) ────────
+      # ── 6. Upload Claude debug log ────────────────────────────────────────────
+      - name: Upload Claude debug log
+        if: steps.attempt_check.outputs.max_reached == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-debug-autofix-pr${{ github.event.pull_request.number }}-attempt${{ steps.attempt_check.outputs.attempt }}-run${{ github.run_id }}
+          path: ${{ runner.temp }}/claude-debug.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # ── 7. Deterministic compliance gate (runs after Claude's edits) ────────
       # If the LLM only fixed the flagged lines and missed other instances of
       # the same rule, this step catches them before a push happens.
       - name: Verify CLAUDE.md compliance (deterministic)

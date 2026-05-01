@@ -48,6 +48,7 @@ jobs:
             --effort high
             --max-turns 60
             --permission-mode bypassPermissions
+            --debug-file ${{ runner.temp }}/claude-debug.json
 
           prompt: |
             You are reviewing PR #${{ github.event.pull_request.number }} in this Android Kotlin + Jetpack Compose repo.
@@ -127,6 +128,15 @@ jobs:
                - FAIL (linter reported violations OR you found architecture/accessibility violations): `gh pr edit ${{ github.event.pull_request.number }} --add-label "review: blocked"`
 
             Advisory-only issues never cause a FAIL verdict. Be accurate — do not block on advisory issues.
+
+      - name: Upload Claude debug log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-debug-review-pr${{ github.event.pull_request.number }}-run${{ github.run_id }}
+          path: ${{ runner.temp }}/claude-debug.json
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Enforce review verdict
         if: always()
