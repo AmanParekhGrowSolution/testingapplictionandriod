@@ -3,13 +3,19 @@ package com.example.testingapplictionandriod.ui.calendar
 import com.example.testingapplictionandriod.domain.model.CalendarEvent
 import com.example.testingapplictionandriod.domain.model.EventType
 
+sealed class CalendarNavScreen {
+    object Month : CalendarNavScreen()
+    object CreateEvent : CalendarNavScreen()
+    data class EventDetail(val eventId: String) : CalendarNavScreen()
+}
+
 data class CalendarUiState(
     val displayedYear: Int = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR),
     val displayedMonth: Int = java.util.Calendar.getInstance().get(java.util.Calendar.MONTH) + 1,
     val selectedDay: Int? = null,
     val events: List<CalendarEvent> = emptyList(),
     val isLoading: Boolean = false,
-    val showAddEventDialog: Boolean = false,
+    val currentScreen: CalendarNavScreen = CalendarNavScreen.Month,
     val newEventTitle: String = "",
     val newEventDescription: String = "",
     val newEventType: EventType = EventType.PERSONAL,

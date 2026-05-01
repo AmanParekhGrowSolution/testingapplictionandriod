@@ -7,6 +7,12 @@
     <string name="btn_today">Today</string>
     <string name="btn_cancel">Cancel</string>
     <string name="btn_add_event">Add Event</string>
+    <string name="btn_save">Save</string>
+
+    <!-- Create event screen -->
+    <string name="screen_create_event">New Event</string>
+    <string name="hint_event_title">Add title…</string>
+    <string name="hint_add_notes">Add notes…</string>
 
     <!-- Events section -->
     <string name="events_title_no_selection">My Events</string>
@@ -22,6 +28,19 @@
     <string name="dialog_start_time">Start Time</string>
     <string name="dialog_end_time">End Time</string>
 
+    <!-- Section labels -->
+    <string name="label_date">Date</string>
+    <string name="label_notes">Notes</string>
+    <string name="label_duration">Duration</string>
+    <string name="label_event_type">Type</string>
+    <string name="label_time">Time</string>
+
+    <!-- Duration formats -->
+    <string name="duration_na">N/A</string>
+    <string name="duration_minutes">%1$d min</string>
+    <string name="duration_hours">%1$d h</string>
+    <string name="duration_hours_minutes">%1$dh %2$dm</string>
+
     <!-- Content descriptions -->
     <string name="cd_add_event">Add new event</string>
     <string name="cd_delete_event">Delete event</string>
@@ -33,6 +52,8 @@
     <string name="cd_end_minute">End minute</string>
     <string name="cd_increase_value">Increase %1$s</string>
     <string name="cd_decrease_value">Decrease %1$s</string>
+    <string name="cd_close">Close</string>
+    <string name="cd_back">Go back</string>
 
     <!-- Event types -->
     <string name="event_type_work">Work</string>
@@ -47,15 +68,15 @@
     <!-- Event time range format -->
     <string name="event_time_range">%1$s:%2$s — %3$s:%4$s</string>
 
-    <!-- Calendar day headers -->
+    <!-- Calendar day headers — Monday-first (matches reference design) -->
     <string-array name="calendar_day_headers">
-        <item>Su</item>
         <item>Mo</item>
         <item>Tu</item>
         <item>We</item>
         <item>Th</item>
         <item>Fr</item>
         <item>Sa</item>
+        <item>Su</item>
     </string-array>
 
     <!-- Month/year header format -->
